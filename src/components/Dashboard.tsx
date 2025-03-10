@@ -1,240 +1,206 @@
 
 import React, { useRef, useEffect } from 'react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import { LineChart, BarChart, PieChart } from 'lucide-react';
 import TransactionsTable from './TransactionsTable';
-import AnimatedNumber from './AnimatedNumbers';
-import { ArrowUpRight, ArrowDownRight, Wallet, CreditCard, PlusCircle } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart as RechartsBarChart,
+  Bar,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
 
-const monthlyData = [
-  { name: 'Jan', revenue: 4000, expenses: 2400 },
-  { name: 'Feb', revenue: 3000, expenses: 1398 },
-  { name: 'Mar', revenue: 5000, expenses: 3800 },
-  { name: 'Apr', revenue: 2780, expenses: 3908 },
-  { name: 'May', revenue: 4890, expenses: 2800 },
-  { name: 'Jun', revenue: 3390, expenses: 2800 },
-  { name: 'Jul', revenue: 4490, expenses: 3300 },
-  { name: 'Aug', revenue: 6000, expenses: 4300 }
+const revenueData = [
+  { name: 'Jan', amount: 4000 },
+  { name: 'Feb', amount: 3000 },
+  { name: 'Mar', amount: 5000 },
+  { name: 'Apr', amount: 4000 },
+  { name: 'May', amount: 7000 },
+  { name: 'Jun', amount: 6000 },
+  { name: 'Jul', amount: 8000 },
+  { name: 'Aug', amount: 9000 },
+  { name: 'Sep', amount: 7000 },
+  { name: 'Oct', amount: 8000 },
+  { name: 'Nov', amount: 10000 },
+  { name: 'Dec', amount: 12000 },
 ];
 
 const expenseData = [
-  { name: 'Rent', value: 1200, color: '#8884d8' },
-  { name: 'Utilities', value: 300, color: '#82ca9d' },
-  { name: 'Software', value: 400, color: '#ffc658' },
-  { name: 'Marketing', value: 800, color: '#ff8042' },
-  { name: 'Salaries', value: 3000, color: '#0088fe' }
+  { name: 'Jan', amount: 2500 },
+  { name: 'Feb', amount: 2700 },
+  { name: 'Mar', amount: 3000 },
+  { name: 'Apr', amount: 2800 },
+  { name: 'May', amount: 3200 },
+  { name: 'Jun', amount: 3500 },
+  { name: 'Jul', amount: 3800 },
+  { name: 'Aug', amount: 4000 },
+  { name: 'Sep', amount: 3700 },
+  { name: 'Oct', amount: 4100 },
+  { name: 'Nov', amount: 4300 },
+  { name: 'Dec', amount: 4500 },
 ];
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088fe'];
+const categoryData = [
+  { name: 'Utilities', value: 1800 },
+  { name: 'Rent', value: 5000 },
+  { name: 'Salaries', value: 12000 },
+  { name: 'Marketing', value: 2400 },
+  { name: 'Equipment', value: 3200 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const Dashboard = () => {
-  const dashboardRef = useRef<HTMLDivElement>(null);
-
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  
+  // Animation on scroll logic
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    // Observe all animated elements
-    const elements = dashboardRef.current?.querySelectorAll('.animate-on-scroll');
-    elements?.forEach(el => observer.observe(el));
-
-    return () => observer.disconnect();
+    const animateOnScroll = () => {
+      if (!sectionRef.current) return;
+      
+      const elements = sectionRef.current.querySelectorAll('.animate-on-scroll');
+      
+      elements.forEach(element => {
+        const elementPosition = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+        
+        if (elementPosition < windowHeight * 0.85) {
+          element.classList.add('visible');
+        }
+      });
+    };
+    
+    // Animate on load for elements above the fold
+    animateOnScroll();
+    
+    // Add scroll event listener
+    window.addEventListener('scroll', animateOnScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', animateOnScroll);
+    };
   }, []);
 
+  const handleExport = () => {
+    toast({
+      title: "Reports exported",
+      description: "Your financial reports have been exported successfully.",
+      duration: 3000,
+    });
+  };
+
   return (
-    <section id="dashboard" className="py-20 px-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto" ref={dashboardRef}>
-        <div className="text-center mb-16">
+    <section id="dashboard" className="py-24 px-6 bg-gray-50" ref={sectionRef}>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16 animate-on-scroll visible">
           <span className="inline-block text-sm font-medium bg-black/5 text-black/80 rounded-full px-3 py-1 mb-4">
             Dashboard
           </span>
-          <h2 className="text-4xl md:text-5xl font-semibold mb-4">Visualize your finances</h2>
+          <h2 className="text-4xl md:text-5xl font-semibold mb-4">Smart financial insights</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Get a clear picture of your financial health with our intuitive dashboard.
+            Get a real-time view of your finances with interactive charts and intelligent reporting.
           </p>
         </div>
-
-        <div className="glass-card rounded-2xl p-6 border border-gray-200 shadow-sm mb-8 animate-on-scroll">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-medium">Dashboard</h3>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">Last 30 Days</Button>
-              <Button variant="outline" size="sm">Export</Button>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="glass-card p-6 rounded-xl shadow-sm animate-on-scroll">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
+                <LineChart />
+              </div>
+              <h3 className="text-lg font-medium">Revenue Tracker</h3>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+                  <Area type="monotone" dataKey="amount" stroke="#3B82F6" fillOpacity={1} fill="url(#colorRevenue)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Total Revenue</p>
-                  <h4 className="text-2xl font-semibold">
-                    $<AnimatedNumber value={28950} formatter={val => val.toLocaleString()} />
-                  </h4>
-                </div>
-                <div className="p-2 bg-green-50 rounded-lg text-green-600">
-                  <Wallet size={20} />
-                </div>
+          
+          <div className="glass-card p-6 rounded-xl shadow-sm animate-on-scroll" style={{ transitionDelay: '100ms' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-500">
+                <BarChart />
               </div>
-              <div className="flex items-center text-sm">
-                <span className="flex items-center text-green-600 font-medium">
-                  <ArrowUpRight size={16} />
-                  12.5%
-                </span>
-                <span className="ml-2 text-gray-500">vs last month</span>
-              </div>
+              <h3 className="text-lg font-medium">Expense Analysis</h3>
             </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Total Expenses</p>
-                  <h4 className="text-2xl font-semibold">
-                    $<AnimatedNumber value={18340} formatter={val => val.toLocaleString()} />
-                  </h4>
-                </div>
-                <div className="p-2 bg-red-50 rounded-lg text-red-600">
-                  <CreditCard size={20} />
-                </div>
-              </div>
-              <div className="flex items-center text-sm">
-                <span className="flex items-center text-red-600 font-medium">
-                  <ArrowDownRight size={16} />
-                  5.2%
-                </span>
-                <span className="ml-2 text-gray-500">vs last month</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Net Profit</p>
-                  <h4 className="text-2xl font-semibold">
-                    $<AnimatedNumber value={10610} formatter={val => val.toLocaleString()} />
-                  </h4>
-                </div>
-                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                  <PlusCircle size={20} />
-                </div>
-              </div>
-              <div className="flex items-center text-sm">
-                <span className="flex items-center text-green-600 font-medium">
-                  <ArrowUpRight size={16} />
-                  8.3%
-                </span>
-                <span className="ml-2 text-gray-500">vs last month</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Profit Margin</p>
-                  <h4 className="text-2xl font-semibold">
-                    <AnimatedNumber value={36.7} suffix="%" formatter={val => val.toFixed(1)} />
-                  </h4>
-                </div>
-                <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
-                  <AreaChart size={20} />
-                </div>
-              </div>
-              <div className="flex items-center text-sm">
-                <span className="flex items-center text-green-600 font-medium">
-                  <ArrowUpRight size={16} />
-                  2.1%
-                </span>
-                <span className="ml-2 text-gray-500">vs last month</span>
-              </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart data={expenseData}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <Tooltip formatter={(value) => [`$${value}`, 'Expenses']} />
+                  <Bar dataKey="amount" fill="#10B981" radius={[4, 4, 0, 0]} />
+                </RechartsBarChart>
+              </ResponsiveContainer>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h4 className="text-lg font-medium mb-4">Revenue vs Expenses</h4>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={monthlyData}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          
+          <div className="glass-card p-6 rounded-xl shadow-sm animate-on-scroll" style={{ transitionDelay: '200ms' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500">
+                <PieChart />
+              </div>
+              <h3 className="text-lg font-medium">Expense Categories</h3>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="revenue" stroke="#8884d8" fillOpacity={1} fill="url(#colorRevenue)" />
-                    <Area type="monotone" dataKey="expenses" stroke="#82ca9d" fillOpacity={1} fill="url(#colorExpenses)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h4 className="text-lg font-medium mb-4">Expense Breakdown</h4>
-              <div className="h-80 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={expenseData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {expenseData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2 mt-4">
-                {expenseData.map((entry, index) => (
-                  <div key={index} className="flex items-center gap-1">
-                    <div 
-                      className="w-3 h-3 rounded-sm" 
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    ></div>
-                    <span className="text-xs text-gray-600">{entry.name}</span>
-                  </div>
-                ))}
-              </div>
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
             </div>
           </div>
-
+        </div>
+        
+        <div className="glass-card p-6 rounded-xl shadow-sm mb-8 animate-on-scroll" style={{ transitionDelay: '300ms' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-medium">Recent Transactions</h3>
+            <button 
+              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-black/90 transition-colors text-sm"
+              onClick={handleExport}
+            >
+              Export Reports
+            </button>
+          </div>
           <TransactionsTable />
         </div>
       </div>

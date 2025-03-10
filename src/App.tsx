@@ -10,6 +10,10 @@ import Pricing from "./pages/Pricing";
 import TaxServices from "./pages/TaxServices";
 import FinancialAdvisory from "./pages/FinancialAdvisory";
 import Contact from "./pages/Contact";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import UserDashboard from "./pages/UserDashboard";
+import TaxCalculator from "./pages/TaxCalculator";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +29,10 @@ const App = () => (
           <Route path="/tax-services" element={<TaxServices />} />
           <Route path="/financial-advisory" element={<FinancialAdvisory />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

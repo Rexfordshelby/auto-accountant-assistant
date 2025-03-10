@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import AnimatedNumber from './AnimatedNumbers';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -45,8 +46,19 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-up" style={{animationDelay: '300ms'}}>
-            <Button className="bg-black text-white hover:bg-black/90 rounded-full px-8 py-6 text-lg">Get Started</Button>
-            <Button variant="outline" className="rounded-full px-8 py-6 text-lg">See Demo</Button>
+            <Button 
+              className="bg-black text-white hover:bg-black/90 rounded-full px-8 py-6 text-lg"
+              asChild
+            >
+              <Link to="/register">Get Started</Link>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="rounded-full px-8 py-6 text-lg"
+              asChild
+            >
+              <Link to="/tools/tax-calculator">See Demo</Link>
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 animate-fade-up" style={{animationDelay: '400ms'}}>
