@@ -1,18 +1,34 @@
 
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Register = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { signUp, user, isLoading } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    businessType: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     document.title = "Create Account | Accountly";
+    
+    // If user is already logged in, redirect to dashboard
+    if (user && !isLoading) {
+      navigate('/dashboard');
+    }
     
     const animateOnScroll = () => {
       const elements = document.querySelectorAll('.animate-on-scroll');
@@ -36,15 +52,42 @@ const Register = () => {
     return () => {
       window.removeEventListener('scroll', animateOnScroll);
     };
-  }, []);
+  }, [user, isLoading, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Account created!",
-      description: "Welcome to Accountly. You can now log in to access your account.",
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData({
+      ...formData,
+      [id === 'business-type' ? 'businessType' : id]: value
     });
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await signUp(formData.email, formData.password, {
+        full_name: formData.name,
+        business_type: formData.businessType
+      });
+      
+      // Navigate to login page after successful registration
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -61,17 +104,36 @@ const Register = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="John Doe" required />
+                <Input 
+                  id="name" 
+                  placeholder="John Doe" 
+                  required 
+                  value={formData.name}
+                  onChange={handleChange}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="john@example.com" required />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="john@example.com" 
+                  required 
+                  value={formData.email}
+                  onChange={handleChange}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required 
+                  value={formData.password}
+                  onChange={handleChange}
+                />
                 <p className="text-xs text-gray-500">Password must be at least 8 characters long</p>
               </div>
               
@@ -80,6 +142,8 @@ const Register = () => {
                 <select 
                   id="business-type" 
                   className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  value={formData.businessType}
+                  onChange={handleChange}
                 >
                   <option value="">Select an option</option>
                   <option value="sole-proprietor">Sole Proprietor</option>
@@ -90,7 +154,9 @@ const Register = () => {
                 </select>
               </div>
               
-              <Button type="submit" className="w-full">Create Account</Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              </Button>
             </form>
             
             <div className="mt-6 text-center text-sm">

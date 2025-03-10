@@ -1,6 +1,5 @@
-
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -15,17 +14,26 @@ import {
   Clock, 
   Settings,
   DownloadCloud,
-  AlertCircle
+  AlertCircle,
+  LogOut
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const UserDashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, isLoading, signOut } = useAuth();
   
   useEffect(() => {
     document.title = "My Dashboard | Accountly";
-  }, []);
+    
+    // If user is not logged in, redirect to login
+    if (!isLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
 
   const handleGenerateTaxReturns = () => {
     toast({
@@ -40,6 +48,23 @@ const UserDashboard = () => {
       description: "Your 12-month cash flow forecast has been updated with the latest data.",
     });
   };
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // The useEffect will redirect, this prevents flash of content
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -48,11 +73,17 @@ const UserDashboard = () => {
       <div className="flex-grow pt-24 pb-12 px-6 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-semibold">Welcome, John</h1>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Settings size={16} />
-              Account Settings
-            </Button>
+            <h1 className="text-3xl font-semibold">Welcome, {user.user_metadata.full_name || 'User'}</h1>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Settings size={16} />
+                Account Settings
+              </Button>
+              <Button variant="destructive" className="flex items-center gap-2" onClick={handleSignOut}>
+                <LogOut size={16} />
+                Sign Out
+              </Button>
+            </div>
           </div>
           
           {/* Financial Summary */}
