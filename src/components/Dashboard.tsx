@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { LineChart, BarChart, PieChart } from 'lucide-react';
 import TransactionsTable from './TransactionsTable';
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   AreaChart,
   Area,
