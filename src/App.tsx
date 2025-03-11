@@ -24,6 +24,15 @@ import Compliance from "./pages/Services/Compliance";
 // Resource pages
 import Blog from "./pages/Resources/Blog";
 import FAQ from "./pages/Resources/FAQ";
+import Guides from "./pages/Resources/Guides";
+import Webinars from "./pages/Resources/Webinars";
+
+// Legal pages
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +65,15 @@ const App = () => (
             {/* Resource pages */}
             <Route path="/blog" element={<Blog />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/resources/guides" element={<Guides />} />
+            <Route path="/resources/webinars" element={<Webinars />} />
+            
+            {/* Company/Legal pages */}
+            <Route path="/about" element={<About />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/cookies" element={<Cookies />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
