@@ -26,6 +26,11 @@ import Blog from "./pages/Resources/Blog";
 import FAQ from "./pages/Resources/FAQ";
 import Guides from "./pages/Resources/Guides";
 import Webinars from "./pages/Resources/Webinars";
+import Tips from "./pages/Resources/Tips";
+import Insights from "./pages/Resources/Insights";
+
+// Tool pages
+import ExpenseTracker from "./pages/Tools/ExpenseTracker";
 
 // Legal pages
 import About from "./pages/About";
@@ -61,12 +66,15 @@ const App = () => (
             
             {/* Tools pages */}
             <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
+            <Route path="/tools/expense-tracker" element={<ExpenseTracker />} />
             
             {/* Resource pages */}
             <Route path="/blog" element={<Blog />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/resources/guides" element={<Guides />} />
             <Route path="/resources/webinars" element={<Webinars />} />
+            <Route path="/resources/tips" element={<Tips />} />
+            <Route path="/resources/insights" element={<Insights />} />
             
             {/* Company/Legal pages */}
             <Route path="/about" element={<About />} />
