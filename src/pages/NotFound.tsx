@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 const NotFound = () => {
   const location = useLocation();
@@ -18,8 +19,9 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Navbar />
       <div className="flex-grow flex items-center justify-center p-6 bg-gradient-to-b from-blue-50 to-white">
-        <div className="text-center max-w-md animate-fade-up">
+        <div className="text-center max-w-md animate-fade-up mt-16">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-8">
             <span className="text-3xl font-medium">404</span>
           </div>

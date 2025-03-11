@@ -19,13 +19,13 @@ const Footer = () => {
               Modern accounting for modern businesses.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-gray-500 hover:text-black transition-colors" aria-label="LinkedIn">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-black transition-colors" aria-label="LinkedIn">
                 <Linkedin size={20} />
               </a>
-              <a href="#" className="text-gray-500 hover:text-black transition-colors" aria-label="Twitter">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-black transition-colors" aria-label="Twitter">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-gray-500 hover:text-black transition-colors" aria-label="Instagram">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-black transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
             </div>
@@ -46,7 +46,7 @@ const Footer = () => {
             <h4 className="text-sm font-semibold uppercase text-gray-500 mb-4">Resources</h4>
             <ul className="space-y-2">
               <li><Link to="/blog" className="text-gray-600 hover:text-black transition-colors">Blog</Link></li>
-              <li><Link to="/resources/tax-calculator" className="text-gray-600 hover:text-black transition-colors">Tax Calculator</Link></li>
+              <li><Link to="/tools/tax-calculator" className="text-gray-600 hover:text-black transition-colors">Tax Calculator</Link></li>
               <li><Link to="/resources/guides" className="text-gray-600 hover:text-black transition-colors">Guides</Link></li>
               <li><Link to="/resources/webinars" className="text-gray-600 hover:text-black transition-colors">Webinars</Link></li>
               <li><Link to="/faq" className="text-gray-600 hover:text-black transition-colors">FAQ</Link></li>

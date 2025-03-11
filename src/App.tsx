@@ -16,6 +16,15 @@ import Login from "./pages/Login";
 import UserDashboard from "./pages/UserDashboard";
 import TaxCalculator from "./pages/TaxCalculator";
 
+// Service pages
+import Accounting from "./pages/Services/Accounting";
+import Audit from "./pages/Services/Audit";
+import Compliance from "./pages/Services/Compliance";
+
+// Resource pages
+import Blog from "./pages/Resources/Blog";
+import FAQ from "./pages/Resources/FAQ";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -26,6 +35,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Main pages */}
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/tax-services" element={<TaxServices />} />
@@ -34,7 +44,19 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<UserDashboard />} />
+            
+            {/* Services pages */}
+            <Route path="/services/accounting" element={<Accounting />} />
+            <Route path="/services/audit" element={<Audit />} />
+            <Route path="/services/compliance" element={<Compliance />} />
+            
+            {/* Tools pages */}
             <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
+            
+            {/* Resource pages */}
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/faq" element={<FAQ />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
