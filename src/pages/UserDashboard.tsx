@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import SubscriptionStatus from '@/components/SubscriptionStatus';
+import SubscriptionGuard from '@/components/SubscriptionGuard';
 
 const UserDashboard = () => {
   const { toast } = useToast();
@@ -133,35 +136,44 @@ const UserDashboard = () => {
             </div>
           </div>
           
+          {/* Subscription Status */}
+          <div className="mb-8">
+            <SubscriptionStatus />
+          </div>
+          
           {/* Quick Actions */}
           <div className="mb-10">
             <h2 className="text-xl font-medium mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <button 
-                className="glass-card p-6 rounded-xl text-left hover-lift"
-                onClick={handleGenerateTaxReturns}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
-                    <FileText />
+              <SubscriptionGuard requiredTier="professional">
+                <button 
+                  className="glass-card p-6 rounded-xl text-left hover-lift"
+                  onClick={handleGenerateTaxReturns}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
+                      <FileText />
+                    </div>
+                    <h3 className="font-medium">Generate Tax Returns</h3>
                   </div>
-                  <h3 className="font-medium">Generate Tax Returns</h3>
-                </div>
-                <p className="text-gray-600">Prepare quarterly or annual tax filings with AI assistance</p>
-              </button>
+                  <p className="text-gray-600">Prepare quarterly or annual tax filings with AI assistance</p>
+                </button>
+              </SubscriptionGuard>
               
-              <button 
-                className="glass-card p-6 rounded-xl text-left hover-lift"
-                onClick={handleForecastCashFlow}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-500">
-                    <BarChart />
+              <SubscriptionGuard requiredTier="starter">
+                <button 
+                  className="glass-card p-6 rounded-xl text-left hover-lift"
+                  onClick={handleForecastCashFlow}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-500">
+                      <BarChart />
+                    </div>
+                    <h3 className="font-medium">Forecast Cash Flow</h3>
                   </div>
-                  <h3 className="font-medium">Forecast Cash Flow</h3>
-                </div>
-                <p className="text-gray-600">Project your business's financial future for 12 months</p>
-              </button>
+                  <p className="text-gray-600">Project your business's financial future for 12 months</p>
+                </button>
+              </SubscriptionGuard>
               
               <Link 
                 to="/invoice/new"
@@ -182,20 +194,26 @@ const UserDashboard = () => {
           <div className="mb-10">
             <h2 className="text-xl font-medium mb-4">Reports & Tools</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link to="/reports/profit-loss" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
-                <LineChart className="text-blue-500" />
-                <span>Profit & Loss</span>
-              </Link>
+              <SubscriptionGuard requiredTier="starter">
+                <Link to="/reports/profit-loss" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
+                  <LineChart className="text-blue-500" />
+                  <span>Profit & Loss</span>
+                </Link>
+              </SubscriptionGuard>
               
-              <Link to="/reports/balance-sheet" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
-                <PieChart className="text-green-500" />
-                <span>Balance Sheet</span>
-              </Link>
+              <SubscriptionGuard requiredTier="starter">
+                <Link to="/reports/balance-sheet" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
+                  <PieChart className="text-green-500" />
+                  <span>Balance Sheet</span>
+                </Link>
+              </SubscriptionGuard>
               
-              <Link to="/reports/tax-summary" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
-                <FileText className="text-purple-500" />
-                <span>Tax Summary</span>
-              </Link>
+              <SubscriptionGuard requiredTier="professional">
+                <Link to="/reports/tax-summary" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
+                  <FileText className="text-purple-500" />
+                  <span>Tax Summary</span>
+                </Link>
+              </SubscriptionGuard>
               
               <Link to="/reports/expense" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
                 <BarChart className="text-orange-500" />
@@ -207,15 +225,19 @@ const UserDashboard = () => {
                 <span>Tax Calculator</span>
               </Link>
               
-              <Link to="/tools/invoicing" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
-                <CreditCard className="text-red-500" />
-                <span>Invoicing</span>
-              </Link>
+              <SubscriptionGuard requiredTier="starter">
+                <Link to="/tools/invoicing" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
+                  <CreditCard className="text-red-500" />
+                  <span>Invoicing</span>
+                </Link>
+              </SubscriptionGuard>
               
-              <Link to="/tools/receipt-scanner" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
-                <DownloadCloud className="text-indigo-500" />
-                <span>Receipt Scanner</span>
-              </Link>
+              <SubscriptionGuard requiredTier="professional">
+                <Link to="/tools/receipt-scanner" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
+                  <DownloadCloud className="text-indigo-500" />
+                  <span>Receipt Scanner</span>
+                </Link>
+              </SubscriptionGuard>
               
               <Link to="/support" className="glass-card p-4 rounded-xl flex items-center gap-3 hover-lift">
                 <HelpCircle className="text-gray-500" />

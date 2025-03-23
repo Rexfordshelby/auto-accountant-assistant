@@ -1,9 +1,14 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { CheckCircle2 } from 'lucide-react';
+import Footer from '../components/Footer';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumbers';
-import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const PricingTier = ({ 
   name, 
@@ -11,10 +16,49 @@ const PricingTier = ({
   description, 
   features, 
   popular = false,
-  buttonText = "Start Free Trial",
-  buttonLink = "/signup",
+  tier,
   delay = 0
 }) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { subscription, upgradeSubscription } = useSubscription();
+  const [loading, setLoading] = useState(false);
+  
+  const isCurrentPlan = subscription?.tier === tier;
+  
+  const handleSubscribe = async () => {
+    if (!user) {
+      navigate('/login?redirect=/pricing');
+      return;
+    }
+    
+    if (isCurrentPlan) {
+      toast({
+        title: "Current Plan",
+        description: `You are already subscribed to the ${name} plan.`,
+      });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const checkoutUrl = await upgradeSubscription(tier);
+      if (checkoutUrl) {
+        navigate(checkoutUrl);
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem processing your request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div 
       className={`relative rounded-2xl p-8 border shadow-sm animate-on-scroll hover-lift ${
@@ -48,21 +92,33 @@ const PricingTier = ({
           </li>
         ))}
       </ul>
-      <Link
-        to={buttonLink}
-        className={`block w-full py-3 rounded-lg font-medium text-center transition-colors ${
+      <Button
+        onClick={handleSubscribe}
+        disabled={loading || isCurrentPlan}
+        className={`w-full py-3 rounded-lg font-medium text-center transition-colors ${
           popular
             ? "bg-white text-black hover:bg-gray-100"
             : "border border-black hover:bg-black hover:text-white"
         }`}
       >
-        {buttonText}
-      </Link>
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : isCurrentPlan ? (
+          "Current Plan"
+        ) : (
+          `Subscribe to ${name}`
+        )}
+      </Button>
     </div>
   );
 };
 
 const Pricing = () => {
+  const [isAnnual, setIsAnnual] = useState(false);
+  
   useEffect(() => {
     document.title = "Pricing | Accountly";
     
@@ -87,6 +143,10 @@ const Pricing = () => {
     };
   }, []);
 
+  const calculatePrice = (basePrice) => {
+    return isAnnual ? Math.round(basePrice * 0.8) : basePrice;
+  };
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -100,16 +160,27 @@ const Pricing = () => {
           
           <div className="flex justify-center mb-12 animate-on-scroll visible" style={{ transitionDelay: '200ms' }}>
             <div className="bg-gray-100 p-1 rounded-full flex">
-              <button className="px-6 py-2 rounded-full bg-white shadow">Monthly</button>
-              <button className="px-6 py-2 rounded-full text-gray-700">Annual (Save 20%)</button>
+              <button 
+                className={`px-6 py-2 rounded-full ${!isAnnual ? 'bg-white shadow' : 'text-gray-700'}`}
+                onClick={() => setIsAnnual(false)}
+              >
+                Monthly
+              </button>
+              <button 
+                className={`px-6 py-2 rounded-full ${isAnnual ? 'bg-white shadow' : 'text-gray-700'}`}
+                onClick={() => setIsAnnual(true)}
+              >
+                Annual (Save 20%)
+              </button>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <PricingTier
               name="Starter"
-              price={29}
+              price={calculatePrice(29)}
               description="For freelancers and small businesses"
+              tier="starter"
               features={[
                 "Expense tracking",
                 "Basic reports",
@@ -122,8 +193,9 @@ const Pricing = () => {
             
             <PricingTier
               name="Professional"
-              price={79}
+              price={calculatePrice(79)}
               description="For growing businesses"
+              tier="professional"
               features={[
                 "Everything in Starter",
                 "Advanced reporting",
@@ -138,8 +210,9 @@ const Pricing = () => {
             
             <PricingTier
               name="Enterprise"
-              price={199}
+              price={calculatePrice(199)}
               description="For larger organizations"
+              tier="enterprise"
               features={[
                 "Everything in Professional",
                 "Custom API integration",
@@ -148,8 +221,6 @@ const Pricing = () => {
                 "Advanced security features",
                 "Compliance reporting"
               ]}
-              buttonText="Contact Sales"
-              buttonLink="/contact"
               delay={500}
             />
           </div>
@@ -178,7 +249,7 @@ const Pricing = () => {
         </div>
       </section>
       
-      {/* Footer section would go here */}
+      <Footer />
     </div>
   );
 };

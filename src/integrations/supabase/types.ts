@@ -142,26 +142,174 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          id: string
+          room_id: string
+          sender_id: string
+          sender_name: string
+          text: string
+          timestamp: string
+        }
+        Insert: {
+          id?: string
+          room_id: string
+          sender_id: string
+          sender_name: string
+          text: string
+          timestamp?: string
+        }
+        Update: {
+          id?: string
+          room_id?: string
+          sender_id?: string
+          sender_name?: string
+          text?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participants: {
+        Row: {
+          created_at: string
+          id: string
+          is_host: boolean | null
+          is_muted: boolean | null
+          is_video_enabled: boolean | null
+          last_active: string
+          name: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_host?: boolean | null
+          is_muted?: boolean | null
+          is_video_enabled?: boolean | null
+          last_active?: string
+          name: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_host?: boolean | null
+          is_muted?: boolean | null
+          is_video_enabled?: boolean | null
+          last_active?: string
+          name?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           business_type: string | null
           created_at: string
+          cuisine: string[] | null
+          email: string | null
           full_name: string | null
+          gallery_images: string[] | null
+          hourly_rate: number | null
           id: string
+          location: string | null
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          role: string | null
+          specialty: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           business_type?: string | null
           created_at?: string
+          cuisine?: string[] | null
+          email?: string | null
           full_name?: string | null
+          gallery_images?: string[] | null
+          hourly_rate?: number | null
           id: string
+          location?: string | null
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          role?: string | null
+          specialty?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           business_type?: string | null
           created_at?: string
+          cuisine?: string[] | null
+          email?: string | null
           full_name?: string | null
+          gallery_images?: string[] | null
+          hourly_rate?: number | null
           id?: string
+          location?: string | null
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          role?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          id: string
+          is_playing: boolean | null
+          media_current_time: number | null
+          media_type: string
+          media_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          is_playing?: boolean | null
+          media_current_time?: number | null
+          media_type: string
+          media_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_playing?: boolean | null
+          media_current_time?: number | null
+          media_type?: string
+          media_url?: string | null
+          name?: string
           updated_at?: string
         }
         Relationships: []

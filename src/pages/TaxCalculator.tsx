@@ -1,14 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, Download, HelpCircle, Globe } from 'lucide-react';
+import { Calculator, Download, HelpCircle, Globe, Lock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SubscriptionGuard from '@/components/SubscriptionGuard';
 
-// Define interfaces for tax rules
 interface TaxBracket {
   min: number;
   max: number | null;
@@ -30,7 +29,6 @@ interface CountryTaxRules {
   };
 }
 
-// Tax rules for different countries
 const COUNTRIES_TAX_RULES: CountryTaxRules[] = [
   {
     name: "United States",
@@ -69,7 +67,7 @@ const COUNTRIES_TAX_RULES: CountryTaxRules[] = [
     symbol: "£",
     standardDeduction: {
       single: 12570,
-      married: 12570 // UK doesn't have different marriage allowances in this simplified model
+      married: 12570
     },
     brackets: {
       single: [
@@ -93,7 +91,7 @@ const COUNTRIES_TAX_RULES: CountryTaxRules[] = [
     symbol: "$",
     standardDeduction: {
       single: 14398,
-      married: 14398 // Simplified for this example
+      married: 14398
     },
     brackets: {
       single: [
@@ -119,7 +117,7 @@ const COUNTRIES_TAX_RULES: CountryTaxRules[] = [
     symbol: "$",
     standardDeduction: {
       single: 18200,
-      married: 18200 // Australia doesn't have separate married filing
+      married: 18200
     },
     brackets: {
       single: [
@@ -145,7 +143,7 @@ const COUNTRIES_TAX_RULES: CountryTaxRules[] = [
     symbol: "₹",
     standardDeduction: {
       single: 50000,
-      married: 50000 // India doesn't distinguish for married status in this model
+      married: 50000
     },
     brackets: {
       single: [
@@ -174,7 +172,7 @@ const TaxCalculator = () => {
   const { toast } = useToast();
   const [income, setIncome] = useState<string>('80000');
   const [filingStatus, setFilingStatus] = useState<'single' | 'married'>('single');
-  const [deductions, setDeductions] = useState<string>('12950'); // Default US standard deduction
+  const [deductions, setDeductions] = useState<string>('12950');
   const [taxableIncome, setTaxableIncome] = useState<number>(0);
   const [tax, setTax] = useState<number>(0);
   const [effectiveRate, setEffectiveRate] = useState<number>(0);
@@ -186,12 +184,10 @@ const TaxCalculator = () => {
     document.title = "Tax Calculator | Accountly";
   }, []);
 
-  // Get current country tax rules
   const getCurrentCountryRules = (): CountryTaxRules => {
     return COUNTRIES_TAX_RULES.find(country => country.code === selectedCountry) || COUNTRIES_TAX_RULES[0];
   };
 
-  // Update standard deduction based on filing status and country
   useEffect(() => {
     const countryRules = getCurrentCountryRules();
     if (filingStatus === 'single') {
@@ -219,7 +215,6 @@ const TaxCalculator = () => {
         const taxableInThisBracket = Math.min(nextMin - min, taxable - min);
         totalTax += taxableInThisBracket * rate;
         
-        // Set marginal rate to the highest bracket reached
         if (taxable >= min) {
           setMarginalRate(rate * 100);
         }
@@ -245,10 +240,9 @@ const TaxCalculator = () => {
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCountry(e.target.value);
-    setShowResults(false); // Reset results when country changes
+    setShowResults(false);
   };
 
-  // Get currency symbol for the selected country
   const getCurrencySymbol = (): string => {
     return getCurrentCountryRules().symbol;
   };
@@ -289,7 +283,7 @@ const TaxCalculator = () => {
                         value={selectedCountry}
                         onChange={handleCountryChange}
                       >
-                        {COUNTRIES_TAX_RULES.map(country => (
+                        {COUNTRIES_TAX_RULES.slice(0, 2).map(country => (
                           <option key={country.code} value={country.code}>
                             {country.name} ({country.currency})
                           </option>
@@ -345,6 +339,26 @@ const TaxCalculator = () => {
                   
                   <Button onClick={calculateTax} className="w-full">Calculate Tax</Button>
                 </div>
+
+                <div className="mt-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lock size={16} className="text-gray-500" />
+                    <h3 className="text-sm font-medium text-gray-700">Premium Countries</h3>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-3">Upgrade to access tax calculations for these countries:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {COUNTRIES_TAX_RULES.slice(2).map(country => (
+                      <div key={country.code} className="flex items-center gap-1 text-xs text-gray-500">
+                        <span>{country.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3">
+                    <Button variant="outline" size="sm" onClick={() => window.location.href = '/pricing'} className="text-xs w-full">
+                      Upgrade to Pro
+                    </Button>
+                  </div>
+                </div>
               </div>
               
               {showResults && (
@@ -386,10 +400,20 @@ const TaxCalculator = () => {
                   </div>
                   
                   <div className="flex justify-between">
-                    <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
-                      <Download size={16} />
-                      Export Report
-                    </Button>
+                    <SubscriptionGuard 
+                      requiredTier="starter"
+                      fallback={
+                        <Button variant="outline" className="flex items-center gap-2" onClick={() => window.location.href = '/pricing'}>
+                          <Lock size={16} />
+                          Upgrade to Export
+                        </Button>
+                      }
+                    >
+                      <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
+                        <Download size={16} />
+                        Export Report
+                      </Button>
+                    </SubscriptionGuard>
                     
                     <Button variant="ghost" className="flex items-center gap-2">
                       <HelpCircle size={16} />
