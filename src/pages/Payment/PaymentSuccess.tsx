@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, Loader2 } from 'lucide-react';
-import { AuthGuard } from '@/components/AuthGuard';
+import AuthGuard from '@/components/AuthGuard';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();

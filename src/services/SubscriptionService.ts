@@ -57,7 +57,13 @@ export const SubscriptionService = {
       return null;
     }
     
-    return data;
+    if (!data) return null;
+    
+    // Ensure tier is properly typed as SubscriptionTier
+    return {
+      ...data,
+      tier: data.tier as SubscriptionTier
+    };
   },
   
   /**
