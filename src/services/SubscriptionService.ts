@@ -13,6 +13,29 @@ export interface Subscription {
   cancel_at_period_end: boolean;
 }
 
+// Map features to the minimum subscription tier required
+export const featureTierMap = {
+  'basic-reports': 'free',
+  'expense-tracking-basic': 'free',
+  'invoice-view': 'free',
+  'tax-calculator-basic': 'free',
+  
+  'advanced-reports': 'starter',
+  'invoice-create': 'starter',
+  'expense-tracking-advanced': 'starter',
+  'client-management': 'starter',
+  
+  'tax-calculator-advanced': 'professional',
+  'financial-forecasting': 'professional',
+  'multi-user': 'professional',
+  'priority-support': 'professional',
+  
+  'custom-api': 'enterprise',
+  'dedicated-account-manager': 'enterprise',
+  'compliance-reporting': 'enterprise',
+  'advanced-security': 'enterprise',
+};
+
 export const SubscriptionService = {
   /**
    * Get the current user's subscription
@@ -43,7 +66,7 @@ export const SubscriptionService = {
   async hasAccess(requiredTier: SubscriptionTier): Promise<boolean> {
     const subscription = await this.getCurrentSubscription();
     
-    if (!subscription) return false;
+    if (!subscription) return requiredTier === 'free';
     
     const tierLevels = {
       'free': 0,
@@ -63,8 +86,11 @@ export const SubscriptionService = {
     
     if (!user) return null;
     
-    // This would normally call a Supabase Edge Function that creates a Stripe checkout session
-    // For now, we'll mock it with a redirect URL
+    // In a real application, this would call a Supabase Edge Function 
+    // that creates a Stripe checkout session
+    
+    // For now, we'll mock it with a redirect URL for demo purposes
+    // In production, replace this with your actual payment gateway integration
     const checkoutUrl = `/payment-success?tier=${tier}`;
     return checkoutUrl;
   },
@@ -84,5 +110,52 @@ export const SubscriptionService = {
       .eq('status', 'active');
       
     return !error;
+  },
+  
+  /**
+   * Create or update a subscription for a user (would be called after successful payment)
+   */
+  async createOrUpdateSubscription(tier: SubscriptionTier): Promise<boolean> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return false;
+    
+    // Check if user already has a subscription
+    const { data: existingSubscription } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    
+    if (existingSubscription) {
+      // Update existing subscription
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({
+          tier,
+          status: 'active',
+          current_period_end: thirtyDaysFromNow.toISOString(),
+          cancel_at_period_end: false
+        })
+        .eq('id', existingSubscription.id);
+        
+      return !error;
+    } else {
+      // Create new subscription
+      const { error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          tier,
+          status: 'active',
+          current_period_end: thirtyDaysFromNow.toISOString(),
+          cancel_at_period_end: false
+        });
+        
+      return !error;
+    }
   }
 };

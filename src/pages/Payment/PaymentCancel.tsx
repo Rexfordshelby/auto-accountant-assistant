@@ -17,6 +17,7 @@ const PaymentCancel = () => {
     toast({
       title: "Payment Cancelled",
       description: "Your subscription payment has been cancelled. No charges were made.",
+      variant: "destructive"
     });
   }, []);
   

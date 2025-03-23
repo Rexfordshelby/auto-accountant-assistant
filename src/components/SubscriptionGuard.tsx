@@ -5,7 +5,8 @@ import { SubscriptionTier } from '@/services/SubscriptionService';
 import { Link } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Shield } from 'lucide-react';
+import { Shield, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SubscriptionGuardProps {
   requiredTier: SubscriptionTier;
@@ -21,7 +22,15 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   const { hasAccess, isLoading } = useSubscription();
   
   if (isLoading) {
-    return <div className="flex justify-center p-4">Loading...</div>;
+    return (
+      <div className="flex flex-col space-y-3 p-4">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+          <p className="text-sm text-gray-500">Checking subscription status...</p>
+        </div>
+        <Skeleton className="h-32 w-full" />
+      </div>
+    );
   }
   
   if (!hasAccess(requiredTier)) {
