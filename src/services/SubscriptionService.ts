@@ -59,10 +59,11 @@ export const SubscriptionService = {
     
     if (!data) return null;
     
-    // Ensure tier is properly typed as SubscriptionTier
+    // Ensure tier and status are properly typed
     return {
       ...data,
-      tier: data.tier as SubscriptionTier
+      tier: data.tier as SubscriptionTier,
+      status: data.status as 'active' | 'canceled' | 'past_due'
     };
   },
   
