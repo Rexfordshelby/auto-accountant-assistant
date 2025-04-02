@@ -12,12 +12,14 @@ interface SubscriptionGuardProps {
   requiredTier: SubscriptionTier;
   children: React.ReactNode;
   fallback?: React.ReactNode;
+  showAlert?: boolean;
 }
 
 const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({ 
   requiredTier, 
   children,
-  fallback
+  fallback,
+  showAlert = true
 }) => {
   const { hasAccess, isLoading } = useSubscription();
   
@@ -36,6 +38,10 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   if (!hasAccess(requiredTier)) {
     if (fallback) {
       return <>{fallback}</>;
+    }
+    
+    if (!showAlert) {
+      return null;
     }
     
     return (
