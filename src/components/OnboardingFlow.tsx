@@ -18,7 +18,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
 import { useNotification } from '@/contexts/NotificationContext';
-import { CheckCircle, ChevronLeft, ChevronRight, Landmark, Building, Store, Home, User, Users } from 'lucide-react';
+import { 
+  CheckCircle, 
+  ChevronLeft, 
+  ChevronRight, 
+  Landmark, 
+  Building, 
+  Store, 
+  Home, 
+  User, 
+  Users 
+} from 'lucide-react';
 
 const steps = [
   {
