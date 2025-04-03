@@ -34,7 +34,7 @@ const steps = [
   {
     id: 'welcome',
     title: 'Welcome to Accountly!',
-    description: 'Let's set up your account in a few quick steps.',
+    description: "Let's set up your account in a few quick steps.",
   },
   {
     id: 'businessType',
