@@ -24,6 +24,7 @@ import PaymentCancel from "./pages/Payment/PaymentCancel";
 import UserProfile from "./pages/UserProfile";
 import FinancialInsightsDashboard from "./pages/FinancialInsightsDashboard";
 import IntegrationsPage from "./pages/IntegrationsPage";
+import AllAboutMe from "./pages/AllAboutMe";
 
 // Service pages
 import Accounting from "./pages/Services/Accounting";
@@ -84,6 +85,7 @@ const App = () => (
                     <Route path="/integrations" element={<IntegrationsPage />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/payment-cancel" element={<PaymentCancel />} />
+                    <Route path="/allaboutme" element={<AllAboutMe />} />
                     
                     {/* Services pages */}
                     <Route path="/services/accounting" element={<Accounting />} />

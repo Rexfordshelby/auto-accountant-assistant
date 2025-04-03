@@ -44,7 +44,12 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
     <>
       {children}
       
-      {/* Fixed position chatbot button */}
+      {/* Fixed position elements */}
+      <div className="fixed top-6 right-6 z-30 flex items-center gap-4">
+        {/* Global search and theme toggle already handled in Navbar */}
+      </div>
+      
+      {/* Chatbot button */}
       {user && (
         <div className="fixed bottom-6 right-6 z-40">
           <Button 
