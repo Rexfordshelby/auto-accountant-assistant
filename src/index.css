@@ -54,7 +54,7 @@
     --card: 224 71.4% 4.1%;
     --card-foreground: 210 20% 98%;
 
-    --popover: 224 71.4% 4.1%;
+    --popover: 224 71.4% 8%;
     --popover-foreground: 210 20% 98%;
 
     --primary: 217.2 91.2% 59.8%;
@@ -154,6 +154,10 @@
 
   .glass-card {
     @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  
+  .dark .glass-card {
+    @apply bg-gray-900/90 backdrop-blur-md border border-gray-800/80 shadow-sm;
   }
 
   .animate-on-scroll {

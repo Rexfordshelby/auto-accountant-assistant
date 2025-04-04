@@ -42,7 +42,10 @@ const ThemeToggle: React.FC = () => {
             <span className="sr-only">Toggle theme</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-36 p-2 bg-popover shadow-lg">
+        <DropdownMenuContent 
+          align="end" 
+          className="w-36 p-2 bg-popover shadow-lg border-2"
+        >
           <div className="space-y-2">
             <p className="text-xs font-medium text-center text-muted-foreground mb-2">Theme</p>
             <ToggleGroup type="single" value={theme} onValueChange={(value) => value && setTheme(value as any)} className="flex justify-center gap-1">
