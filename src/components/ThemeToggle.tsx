@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Moon, Sun, PaintBucket, Palette } from 'lucide-react';
+import { Sun, PaintBucket, Palette } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { 
   DropdownMenu, 
@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const ThemeToggle: React.FC = () => {
@@ -17,14 +16,12 @@ const ThemeToggle: React.FC = () => {
 
   const themeIcons = {
     light: <Sun className="h-5 w-5 text-amber-500" />,
-    dark: <Moon className="h-5 w-5 text-indigo-400" />,
     purple: <Palette className="h-5 w-5 text-purple-500" />,
     blue: <PaintBucket className="h-5 w-5 text-blue-500" />
   };
 
   const themeLabels = {
     light: "Light",
-    dark: "Dark",
     purple: "Purple",
     blue: "Blue"
   };
