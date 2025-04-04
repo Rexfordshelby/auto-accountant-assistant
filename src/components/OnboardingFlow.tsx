@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -100,7 +99,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     setIsSubmitting(true);
     
     try {
-      // Update user profile with onboarding data
       const { error } = await supabase
         .from('profiles')
         .update({
