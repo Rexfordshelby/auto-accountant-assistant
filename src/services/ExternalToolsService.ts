@@ -55,17 +55,14 @@ export const availableProviders: ToolProvider[] = [
   },
 ];
 
+// Mock data store for external connections
+const mockConnections: Record<string, ExternalToolConnection[]> = {};
+
 export class ExternalToolsService {
   static async getUserConnections(userId: string): Promise<ExternalToolConnection[]> {
     try {
-      const { data, error } = await supabase
-        .from('external_tool_connections')
-        .select('*')
-        .eq('user_id', userId);
-      
-      if (error) throw error;
-      
-      return data || [];
+      // Return mock connections if they exist for this user
+      return mockConnections[userId] || [];
     } catch (error) {
       console.error('Error fetching user connections:', error);
       return [];
@@ -74,19 +71,22 @@ export class ExternalToolsService {
 
   static async connectTool(userId: string, providerId: string): Promise<boolean> {
     try {
-      // In a real application, this would initiate OAuth flow
-      // This is a simplified mock implementation
-      const { error } = await supabase
-        .from('external_tool_connections')
-        .insert({
-          user_id: userId,
-          provider: providerId,
-          status: 'connected',
-          last_sync: new Date().toISOString(),
-          metadata: {}
-        });
+      // Create mock connection
+      const newConnection: ExternalToolConnection = {
+        id: `conn_${Math.random().toString(36).substring(2, 9)}`,
+        provider: providerId,
+        status: 'connected',
+        lastSync: new Date(),
+        metadata: {}
+      };
       
-      if (error) throw error;
+      // Initialize user connections array if it doesn't exist
+      if (!mockConnections[userId]) {
+        mockConnections[userId] = [];
+      }
+      
+      // Add the new connection
+      mockConnections[userId].push(newConnection);
       
       return true;
     } catch (error) {
@@ -97,14 +97,16 @@ export class ExternalToolsService {
 
   static async disconnectTool(connectionId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('external_tool_connections')
-        .update({ status: 'disconnected' })
-        .eq('id', connectionId);
+      // Find and update the connection in our mock store
+      for (const userId in mockConnections) {
+        const connectionIndex = mockConnections[userId].findIndex(conn => conn.id === connectionId);
+        if (connectionIndex !== -1) {
+          mockConnections[userId][connectionIndex].status = 'disconnected';
+          return true;
+        }
+      }
       
-      if (error) throw error;
-      
-      return true;
+      return false;
     } catch (error) {
       console.error('Error disconnecting tool:', error);
       return false;
@@ -113,18 +115,17 @@ export class ExternalToolsService {
 
   static async syncTool(connectionId: string): Promise<boolean> {
     try {
-      // In a real application, this would trigger a sync with the external API
-      const { error } = await supabase
-        .from('external_tool_connections')
-        .update({ 
-          last_sync: new Date().toISOString(),
-          status: 'connected'
-        })
-        .eq('id', connectionId);
+      // Find and update the connection in our mock store
+      for (const userId in mockConnections) {
+        const connectionIndex = mockConnections[userId].findIndex(conn => conn.id === connectionId);
+        if (connectionIndex !== -1) {
+          mockConnections[userId][connectionIndex].lastSync = new Date();
+          mockConnections[userId][connectionIndex].status = 'connected';
+          return true;
+        }
+      }
       
-      if (error) throw error;
-      
-      return true;
+      return false;
     } catch (error) {
       console.error('Error syncing tool:', error);
       return false;
