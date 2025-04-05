@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -99,12 +100,18 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     setIsSubmitting(true);
     
     try {
+      // Store company name in preferences object
+      const updatedPreferences = {
+        ...preferences,
+        companyName: companyName
+      };
+      
       const { error } = await supabase
         .from('profiles')
         .update({
           business_type: businessType,
           onboarding_completed: true,
-          preferences: preferences,
+          preferences: updatedPreferences,
         })
         .eq('id', user.id);
       

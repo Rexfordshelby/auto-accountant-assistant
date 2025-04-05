@@ -234,7 +234,9 @@ export type Database = {
           hourly_rate: number | null
           id: string
           location: string | null
+          onboarding_completed: boolean | null
           phone: string | null
+          preferences: Json | null
           rating: number | null
           review_count: number | null
           role: string | null
@@ -253,7 +255,9 @@ export type Database = {
           hourly_rate?: number | null
           id: string
           location?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
+          preferences?: Json | null
           rating?: number | null
           review_count?: number | null
           role?: string | null
@@ -272,7 +276,9 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           location?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
+          preferences?: Json | null
           rating?: number | null
           review_count?: number | null
           role?: string | null
