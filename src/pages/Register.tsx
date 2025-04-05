@@ -4,10 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import { AlertCircle } from 'lucide-react';
 
 const Register = () => {
   const { toast } = useToast();
@@ -21,6 +23,7 @@ const Register = () => {
     businessType: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   useEffect(() => {
     document.title = "Create Account | Accountly";
@@ -60,11 +63,50 @@ const Register = () => {
       ...formData,
       [id === 'business-type' ? 'businessType' : id]: value
     });
+    // Clear error when user types
+    if (formError) {
+      setFormError(null);
+    }
+  };
+
+  const validateForm = () => {
+    if (!formData.name) {
+      setFormError("Full name is required");
+      return false;
+    }
+    
+    if (!formData.email) {
+      setFormError("Email is required");
+      return false;
+    }
+    
+    if (!formData.password) {
+      setFormError("Password is required");
+      return false;
+    }
+    
+    if (formData.password.length < 6) {
+      setFormError("Password must be at least 6 characters long");
+      return false;
+    }
+    
+    if (!formData.businessType) {
+      setFormError("Please select a business type");
+      return false;
+    }
+    
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setFormError(null);
     
     try {
       await signUp(formData.email, formData.password, {
@@ -74,8 +116,11 @@ const Register = () => {
       
       // Navigate to login page after successful registration
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
+      if (!error.message.includes("Toast")) { // Avoid duplicate error messages
+        setFormError(error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -101,6 +146,13 @@ const Register = () => {
           </div>
           
           <div className="glass-card p-8 rounded-xl shadow-sm animate-on-scroll">
+            {formError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -110,6 +162,7 @@ const Register = () => {
                   required 
                   value={formData.name}
                   onChange={handleChange}
+                  className={formError && !formData.name ? "border-red-500" : ""}
                 />
               </div>
               
@@ -122,6 +175,7 @@ const Register = () => {
                   required 
                   value={formData.email}
                   onChange={handleChange}
+                  className={formError && !formData.email ? "border-red-500" : ""}
                 />
               </div>
               
@@ -133,17 +187,21 @@ const Register = () => {
                   required 
                   value={formData.password}
                   onChange={handleChange}
+                  className={formError && !formData.password ? "border-red-500" : ""}
                 />
-                <p className="text-xs text-gray-500">Password must be at least 8 characters long</p>
+                <p className="text-xs text-gray-500">Password must be at least 6 characters long</p>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="business-type">Business Type</Label>
                 <select 
                   id="business-type" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className={`w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+                    formError && !formData.businessType ? "border-red-500" : "border-gray-300"
+                  }`}
                   value={formData.businessType}
                   onChange={handleChange}
+                  required
                 >
                   <option value="">Select an option</option>
                   <option value="sole-proprietor">Sole Proprietor</option>

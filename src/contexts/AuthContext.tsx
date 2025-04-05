@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
 
@@ -49,18 +49,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       
       toast({
         title: "Account created successfully!",
         description: "Please check your email to confirm your account.",
       });
     } catch (error: any) {
-      toast({
-        title: "Error creating account",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (!(error instanceof AuthError)) {
+        toast({
+          title: "Error creating account",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   }
@@ -72,20 +77,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       
       toast({
         title: "Login successful!",
         description: "Welcome back to Accountly.",
       });
     } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (!(error instanceof AuthError)) {
+        toast({
+          title: "Login failed",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
+  }
+
+  function handleAuthError(error: AuthError) {
+    let title = "Authentication Error";
+    let message = error.message;
+    
+    // Customize error messages based on error type
+    switch (error.message) {
+      case "Invalid login credentials":
+        title = "Invalid Credentials";
+        message = "The email or password you entered is incorrect. Please try again.";
+        break;
+      case "Email not confirmed":
+        title = "Email Not Verified";
+        message = "Please check your email to confirm your account before logging in.";
+        break;
+      case "User already registered":
+        title = "Account Already Exists";
+        message = "An account with this email already exists. Try logging in instead.";
+        break;
+      case "Password should be at least 6 characters":
+        title = "Password Too Short";
+        message = "Your password must be at least 6 characters long.";
+        break;
+    }
+    
+    toast({
+      title,
+      description: message,
+      variant: "destructive",
+    });
   }
 
   async function signOut() {

@@ -4,10 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import { AlertCircle } from 'lucide-react';
 
 const Login = () => {
   const { toast } = useToast();
@@ -19,6 +21,7 @@ const Login = () => {
     password: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   useEffect(() => {
     document.title = "Login | Accountly";
@@ -35,17 +38,44 @@ const Login = () => {
       ...formData,
       [id]: value
     });
+    // Clear error when user types
+    if (formError) {
+      setFormError(null);
+    }
+  };
+
+  const validateForm = () => {
+    if (!formData.email) {
+      setFormError("Email is required");
+      return false;
+    }
+    
+    if (!formData.password) {
+      setFormError("Password is required");
+      return false;
+    }
+    
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
+    setFormError(null);
     
     try {
       await signIn(formData.email, formData.password);
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      if (!error.message.includes("Toast")) { // Avoid duplicate error messages
+        setFormError(error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -71,6 +101,13 @@ const Login = () => {
           </div>
           
           <div className="glass-card p-8 rounded-xl shadow-sm animate-fade-up" style={{animationDelay: '100ms'}}>
+            {formError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -81,6 +118,7 @@ const Login = () => {
                   required 
                   value={formData.email}
                   onChange={handleChange}
+                  className={formError && !formData.email ? "border-red-500" : ""}
                 />
               </div>
               
@@ -92,6 +130,7 @@ const Login = () => {
                   required 
                   value={formData.password}
                   onChange={handleChange}
+                  className={formError && !formData.password ? "border-red-500" : ""}
                 />
                 <div className="flex justify-end">
                   <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
