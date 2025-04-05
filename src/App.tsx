@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,29 +22,8 @@ import UserProfile from "./pages/UserProfile";
 import FinancialInsightsDashboard from "./pages/FinancialInsightsDashboard";
 import IntegrationsPage from "./pages/IntegrationsPage";
 import AllAboutMe from "./pages/AllAboutMe";
-
-// Service pages
-import Accounting from "./pages/Services/Accounting";
-import Audit from "./pages/Services/Audit";
-import Compliance from "./pages/Services/Compliance";
-
-// Resource pages
-import Blog from "./pages/Resources/Blog";
-import FAQ from "./pages/Resources/FAQ";
-import Guides from "./pages/Resources/Guides";
-import Webinars from "./pages/Resources/Webinars";
-import Tips from "./pages/Resources/Tips";
-import Insights from "./pages/Resources/Insights";
-
-// Tool pages
-import ExpenseTracker from "./pages/Tools/ExpenseTracker";
-
-// Legal pages
-import About from "./pages/About";
-import Careers from "./pages/Careers";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Cookies from "./pages/Cookies";
+import UploadDataPage from "./pages/UploadDataPage";
+import CompanySettingsPage from "./pages/CompanySettingsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,7 +45,6 @@ const App = () => (
           <BrowserRouter>
             <AppWrapper>
               <Routes>
-                {/* Main pages */}
                 <Route path="/" element={<Index />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/tax-services" element={<TaxServices />} />
@@ -82,17 +59,16 @@ const App = () => (
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancel" element={<PaymentCancel />} />
                 <Route path="/allaboutme" element={<AllAboutMe />} />
+                <Route path="/upload-data" element={<UploadDataPage />} />
+                <Route path="/company-settings" element={<CompanySettingsPage />} />
                 
-                {/* Services pages */}
                 <Route path="/services/accounting" element={<Accounting />} />
                 <Route path="/services/audit" element={<Audit />} />
                 <Route path="/services/compliance" element={<Compliance />} />
                 
-                {/* Tools pages */}
                 <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
                 <Route path="/tools/expense-tracker" element={<ExpenseTracker />} />
                 
-                {/* Resource pages */}
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/resources/guides" element={<Guides />} />
@@ -100,14 +76,12 @@ const App = () => (
                 <Route path="/resources/tips" element={<Tips />} />
                 <Route path="/resources/insights" element={<Insights />} />
                 
-                {/* Company/Legal pages */}
                 <Route path="/about" element={<About />} />
                 <Route path="/careers" element={<Careers />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/cookies" element={<Cookies />} />
                 
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppWrapper>

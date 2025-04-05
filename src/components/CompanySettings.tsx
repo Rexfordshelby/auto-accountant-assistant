@@ -36,8 +36,9 @@ const CompanySettings = () => {
       if (error) throw error;
 
       if (data?.preferences) {
-        setCompanyName(data.preferences.companyName || '');
-        setLogoUrl(data.preferences.logoUrl || '');
+        const preferences = data.preferences as Record<string, any>;
+        setCompanyName(preferences.companyName || '');
+        setLogoUrl(preferences.logoUrl || '');
       }
     } catch (error) {
       console.error('Error loading company profile:', error);
@@ -107,7 +108,7 @@ const CompanySettings = () => {
 
       if (profileError) throw profileError;
 
-      const currentPreferences = profileData?.preferences || {};
+      const currentPreferences = profileData?.preferences as Record<string, any> || {};
       
       const { error } = await supabase
         .from('profiles')

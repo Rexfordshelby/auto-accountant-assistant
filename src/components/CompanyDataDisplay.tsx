@@ -45,9 +45,11 @@ const CompanyDataDisplay = () => {
         'personal': 'Personal Finance'
       };
 
+      const preferences = data.preferences as Record<string, any> || {};
+      
       setCompanyData({
-        companyName: data.preferences?.companyName || 'Your Company',
-        logoUrl: data.preferences?.logoUrl || null,
+        companyName: preferences.companyName || 'Your Company',
+        logoUrl: preferences.logoUrl || null,
         businessType: businessTypeMap[data.business_type] || data.business_type
       });
     } catch (error) {
