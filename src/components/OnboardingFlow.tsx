@@ -1,16 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -27,7 +19,8 @@ import {
   Store, 
   Home, 
   User, 
-  Users 
+  Users,
+  FileUp
 } from 'lucide-react';
 
 const steps = [
@@ -70,6 +63,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [businessType, setBusinessType] = useState<string>('');
   const [companyName, setCompanyName] = useState('');
+  const [companyLogo, setCompanyLogo] = useState<File | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string>('');
   const [preferences, setPreferences] = useState({
     emailNotifications: true,
     monthlyReports: true,
@@ -81,6 +76,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const navigate = useNavigate();
   const { addNotification } = useNotification();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -94,16 +90,64 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
     }
   };
 
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const file = event.target.files[0];
+      setCompanyLogo(file);
+      
+      const objectUrl = URL.createObjectURL(file);
+      setLogoUrl(objectUrl);
+    } catch (error) {
+      console.error('Error handling logo selection:', error);
+    }
+  };
+
+  const uploadLogo = async () => {
+    if (!companyLogo || !user) return null;
+    
+    setUploading(true);
+    try {
+      const fileExt = companyLogo.name.split('.').pop();
+      const filePath = `${user.id}/company-logo.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(filePath, companyLogo, { upsert: true });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(filePath);
+      
+      return data?.publicUrl || null;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleComplete = async () => {
     if (!user) return;
     
     setIsSubmitting(true);
     
     try {
-      // Store company name in preferences object
+      let uploadedLogoUrl = null;
+      if (companyLogo) {
+        uploadedLogoUrl = await uploadLogo();
+      }
+      
       const updatedPreferences = {
         ...preferences,
-        companyName: companyName
+        companyName: companyName,
+        logoUrl: uploadedLogoUrl
       };
       
       const { error } = await supabase
@@ -211,6 +255,36 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Enter your business name"
                 />
+              </div>
+              
+              <div>
+                <Label htmlFor="companyLogo">Company Logo (Optional)</Label>
+                <div className="flex flex-col space-y-4 mt-2">
+                  {logoUrl && (
+                    <div className="w-32 h-32 relative overflow-hidden rounded-md border">
+                      <img 
+                        src={logoUrl} 
+                        alt="Company Logo Preview" 
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <Label 
+                    htmlFor="logo-upload" 
+                    className="cursor-pointer flex items-center gap-2 w-fit px-4 py-2 rounded-md border bg-background hover:bg-accent transition-colors"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    {uploading ? 'Uploading...' : 'Upload Logo'}
+                  </Label>
+                  <Input
+                    id="logo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </div>
               </div>
             </div>
           </div>
