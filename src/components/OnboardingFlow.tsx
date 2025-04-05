@@ -103,7 +103,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
         .from('profiles')
         .update({
           business_type: businessType,
-          company_name: companyName,
           onboarding_completed: true,
           preferences: preferences,
         })
