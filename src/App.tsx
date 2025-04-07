@@ -24,6 +24,21 @@ import IntegrationsPage from "./pages/IntegrationsPage";
 import AllAboutMe from "./pages/AllAboutMe";
 import UploadDataPage from "./pages/UploadDataPage";
 import CompanySettingsPage from "./pages/CompanySettingsPage";
+import Accounting from "./pages/Services/Accounting";
+import Audit from "./pages/Services/Audit";
+import Compliance from "./pages/Services/Compliance";
+import ExpenseTracker from "./pages/Tools/ExpenseTracker";
+import Blog from "./pages/Resources/Blog";
+import FAQ from "./pages/Resources/FAQ";
+import Guides from "./pages/Resources/Guides";
+import Webinars from "./pages/Resources/Webinars";
+import Tips from "./pages/Resources/Tips";
+import Insights from "./pages/Resources/Insights";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 
 const queryClient = new QueryClient({
   defaultOptions: {

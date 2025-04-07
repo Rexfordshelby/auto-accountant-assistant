@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileUp, Database, Check, AlertCircle } from 'lucide-react';
@@ -10,6 +9,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface FinancialDocument {
+  user_id: string;
+  document_type: string;
+  file_name: string;
+  file_path: string;
+  file_url?: string;
+  status: string;
+  metadata: {
+    size: number;
+    type: string;
+    uploaded_at: string;
+  };
+}
 
 const FinancialDataUpload = () => {
   const { user } = useAuth();
@@ -79,21 +92,23 @@ const FinancialDataUpload = () => {
         .getPublicUrl(filePath);
       
       // Record the upload in the database
+      const newDocument: FinancialDocument = {
+        user_id: user.id,
+        document_type: fileType,
+        file_name: file.name,
+        file_path: filePath,
+        file_url: data?.publicUrl,
+        status: 'processing',
+        metadata: {
+          size: file.size,
+          type: file.type,
+          uploaded_at: new Date().toISOString()
+        }
+      };
+      
       const { error: dbError } = await supabase
         .from('financial_documents')
-        .insert({
-          user_id: user.id,
-          document_type: fileType,
-          file_name: file.name,
-          file_path: filePath,
-          file_url: data?.publicUrl,
-          status: 'processing',
-          metadata: {
-            size: file.size,
-            type: file.type,
-            uploaded_at: new Date().toISOString()
-          }
-        });
+        .insert(newDocument);
       
       if (dbError) throw dbError;
       
