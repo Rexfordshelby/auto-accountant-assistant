@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 export type SubscriptionTier = 'free' | 'starter' | 'professional' | 'enterprise';
@@ -163,6 +162,74 @@ export const SubscriptionService = {
         });
         
       return !error;
+    }
+  },
+  
+  /**
+   * Create a test premium account with enterprise tier
+   * For demonstration purposes only
+   */
+  async createPremiumTestAccount(email: string, password: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // 1. Create the user account
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: 'Premium Test User',
+            business_type: 'corporation'
+          }
+        }
+      });
+      
+      if (signUpError) {
+        console.error("Error creating test user:", signUpError);
+        return { 
+          success: false, 
+          message: signUpError.message 
+        };
+      }
+      
+      if (!signUpData.user) {
+        return { 
+          success: false, 
+          message: "Failed to create user" 
+        };
+      }
+      
+      // 2. Create a premium subscription for this user
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      
+      const { error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: signUpData.user.id,
+          tier: 'enterprise', // Set to enterprise tier (highest)
+          status: 'active',
+          current_period_end: thirtyDaysFromNow.toISOString(),
+          cancel_at_period_end: false
+        });
+        
+      if (subscriptionError) {
+        console.error("Error creating subscription:", subscriptionError);
+        return { 
+          success: false, 
+          message: "Account created but failed to add premium subscription: " + subscriptionError.message 
+        };
+      }
+      
+      return { 
+        success: true, 
+        message: "Premium test account created successfully" 
+      };
+    } catch (error) {
+      console.error("Unexpected error creating premium account:", error);
+      return { 
+        success: false, 
+        message: `Unexpected error: ${error.message}` 
+      };
     }
   }
 };

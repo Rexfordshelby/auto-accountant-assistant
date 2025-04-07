@@ -39,6 +39,7 @@ import Careers from "./pages/Careers";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
+import CreatePremiumAccount from "./pages/CreatePremiumAccount";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,61 +51,65 @@ const queryClient = new QueryClient({
   }
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <GlobalErrorBoundary>
-      <SubscriptionProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppWrapper>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/tax-services" element={<TaxServices />} />
-                <Route path="/financial-advisory" element={<FinancialAdvisory />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<UserDashboard />} />
-                <Route path="/profile" element={<UserProfile />} />
-                <Route path="/insights" element={<FinancialInsightsDashboard />} />
-                <Route path="/integrations" element={<IntegrationsPage />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/payment-cancel" element={<PaymentCancel />} />
-                <Route path="/allaboutme" element={<AllAboutMe />} />
-                <Route path="/upload-data" element={<UploadDataPage />} />
-                <Route path="/company-settings" element={<CompanySettingsPage />} />
-                
-                <Route path="/services/accounting" element={<Accounting />} />
-                <Route path="/services/audit" element={<Audit />} />
-                <Route path="/services/compliance" element={<Compliance />} />
-                
-                <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
-                <Route path="/tools/expense-tracker" element={<ExpenseTracker />} />
-                
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/resources/guides" element={<Guides />} />
-                <Route path="/resources/webinars" element={<Webinars />} />
-                <Route path="/resources/tips" element={<Tips />} />
-                <Route path="/resources/insights" element={<Insights />} />
-                
-                <Route path="/about" element={<About />} />
-                <Route path="/careers" element={<Careers />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/cookies" element={<Cookies />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AppWrapper>
-          </BrowserRouter>
-        </TooltipProvider>
-      </SubscriptionProvider>
-    </GlobalErrorBoundary>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GlobalErrorBoundary>
+        <SubscriptionProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppWrapper>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/tax-services" element={<TaxServices />} />
+                  <Route path="/financial-advisory" element={<FinancialAdvisory />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/dashboard" element={<UserDashboard />} />
+                  <Route path="/profile" element={<UserProfile />} />
+                  <Route path="/insights" element={<FinancialInsightsDashboard />} />
+                  <Route path="/integrations" element={<IntegrationsPage />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
+                  <Route path="/payment-cancel" element={<PaymentCancel />} />
+                  <Route path="/allaboutme" element={<AllAboutMe />} />
+                  <Route path="/upload-data" element={<UploadDataPage />} />
+                  <Route path="/company-settings" element={<CompanySettingsPage />} />
+                  
+                  <Route path="/services/accounting" element={<Accounting />} />
+                  <Route path="/services/audit" element={<Audit />} />
+                  <Route path="/services/compliance" element={<Compliance />} />
+                  
+                  <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
+                  <Route path="/tools/expense-tracker" element={<ExpenseTracker />} />
+                  
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/resources/guides" element={<Guides />} />
+                  <Route path="/resources/webinars" element={<Webinars />} />
+                  <Route path="/resources/tips" element={<Tips />} />
+                  <Route path="/resources/insights" element={<Insights />} />
+                  
+                  <Route path="/about" element={<About />} />
+                  <Route path="/careers" element={<Careers />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/cookies" element={<Cookies />} />
+                  
+                  <Route path="/create-premium-account" element={<CreatePremiumAccount />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AppWrapper>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SubscriptionProvider>
+      </GlobalErrorBoundary>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
