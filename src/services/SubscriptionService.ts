@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 
 export type SubscriptionTier = 'free' | 'starter' | 'professional' | 'enterprise';
@@ -44,6 +45,7 @@ export const SubscriptionService = {
     
     if (!user) return null;
     
+    // First try to get the subscription from Supabase
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -51,19 +53,42 @@ export const SubscriptionService = {
       .eq('status', 'active')
       .maybeSingle();
       
-    if (error) {
-      console.error("Error fetching subscription:", error);
-      return null;
+    if (data) {
+      // Ensure tier and status are properly typed
+      return {
+        ...data,
+        tier: data.tier as SubscriptionTier,
+        status: data.status as 'active' | 'canceled' | 'past_due'
+      };
     }
     
-    if (!data) return null;
+    // If no subscription in database, check with Stripe via Edge Function
+    try {
+      const { data: response } = await supabase.functions.invoke('check-subscription');
+      
+      if (response.subscribed) {
+        // Create a subscription record in our database
+        const subData = {
+          user_id: user.id,
+          tier: response.tier,
+          status: 'active',
+          current_period_end: response.current_period_end,
+          cancel_at_period_end: response.cancel_at_period_end
+        };
+        
+        await supabase.from('subscriptions').upsert(subData);
+        
+        return {
+          id: '', // This will be filled in by the database
+          created_at: new Date().toISOString(),
+          ...subData
+        };
+      }
+    } catch (err) {
+      console.error("Error checking subscription with Stripe:", err);
+    }
     
-    // Ensure tier and status are properly typed
-    return {
-      ...data,
-      tier: data.tier as SubscriptionTier,
-      status: data.status as 'active' | 'canceled' | 'past_due'
-    };
+    return null;
   },
   
   /**
@@ -92,13 +117,17 @@ export const SubscriptionService = {
     
     if (!user) return null;
     
-    // In a real application, this would call a Supabase Edge Function 
-    // that creates a Stripe checkout session
-    
-    // For now, we'll mock it with a redirect URL for demo purposes
-    // In production, replace this with your actual payment gateway integration
-    const checkoutUrl = `/payment-success?tier=${tier}`;
-    return checkoutUrl;
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { tier }
+      });
+      
+      if (error) throw error;
+      return data.url;
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      return null;
+    }
   },
   
   /**

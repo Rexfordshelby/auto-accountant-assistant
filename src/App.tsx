@@ -43,6 +43,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
 import CreatePremiumAccount from "./pages/CreatePremiumAccount";
+import ClientsPage from "./pages/ClientsPage";
+import ReportsPage from "./pages/ReportsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,6 +107,10 @@ function App() {
                   <Route path="/cookies" element={<Cookies />} />
                   
                   <Route path="/create-premium-account" element={<CreatePremiumAccount />} />
+
+                  {/* New routes */}
+                  <Route path="/clients" element={<ClientsPage />} />
+                  <Route path="/reports" element={<ReportsPage />} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>
