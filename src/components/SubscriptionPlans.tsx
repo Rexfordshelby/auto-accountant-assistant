@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SubscriptionTier } from '@/services/SubscriptionService';
 
 interface PlanFeature {
   name: string;
@@ -16,7 +17,7 @@ interface PlanFeature {
 interface PlanProps {
   name: string;
   price: number;
-  tier: string;
+  tier: SubscriptionTier;
   description: string;
   features: PlanFeature[];
   popular?: boolean;
@@ -118,7 +119,7 @@ const SubscriptionPlans = () => {
     {
       name: "Free",
       price: 0,
-      tier: "free",
+      tier: "free" as SubscriptionTier,
       description: "Basic features for individuals",
       features: [
         { name: "Basic reporting", included: true },
@@ -134,7 +135,7 @@ const SubscriptionPlans = () => {
     {
       name: "Starter",
       price: 29,
-      tier: "starter",
+      tier: "starter" as SubscriptionTier,
       description: "Essential tools for small businesses",
       popular: true,
       features: [
@@ -151,7 +152,7 @@ const SubscriptionPlans = () => {
     {
       name: "Professional",
       price: 79,
-      tier: "professional",
+      tier: "professional" as SubscriptionTier,
       description: "Advanced features for growing businesses",
       features: [
         { name: "Basic reporting", included: true },
@@ -169,7 +170,7 @@ const SubscriptionPlans = () => {
     {
       name: "Enterprise",
       price: 199,
-      tier: "enterprise",
+      tier: "enterprise" as SubscriptionTier,
       description: "Complete solution for larger organizations",
       features: [
         { name: "All Professional features", included: true },

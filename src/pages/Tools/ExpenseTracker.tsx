@@ -1,244 +1,183 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Trash2, Edit, Download, Search, Filter, Plus, Loader2, Upload, PieChart } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Trash2,
-  Plus,
-  Save,
-  Calendar,
-  Wallet,
-  Receipt,
-  FileText,
-  ArrowDownCircle,
-  ArrowUpCircle,
-  Loader2,
-  Filter,
-  Download,
-  DollarSign
-} from 'lucide-react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import SubscriptionGuard from '@/components/SubscriptionGuard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const formSchema = z.object({
+  amount: z.coerce.number().positive({ message: "Amount must be a positive number" }),
+  date: z.string().min(1, { message: "Date is required" }),
+  type: z.string().min(1, { message: "Type is required" }),
+  category: z.string().min(1, { message: "Category is required" }),
+  description: z.string().optional(),
+});
+
+const EXPENSE_CATEGORIES = [
+  "Advertising", "Insurance", "Legal fees", "Office supplies", "Rent", "Salaries", 
+  "Software", "Travel", "Utilities", "Other"
+];
+
+const INCOME_CATEGORIES = [
+  "Client payment", "Product sales", "Service fee", "Consulting", "Commission", "Interest", 
+  "Affiliate", "Royalty", "Other"
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
 
 interface Transaction {
   id: string;
-  user_id: string;
   amount: number;
   date: string;
   type: string;
-  description: string;
   category: string;
+  description?: string;
   receipt_url?: string;
-  created_at: string;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
-
 const ExpenseTracker = () => {
-  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [filterMonth, setFilterMonth] = useState<string>('');
-  const [filterCategory, setFilterCategory] = useState<string>('');
-  
-  // Form states
-  const [amount, setAmount] = useState<number>(0);
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [type, setType] = useState<string>('expense');
-  const [description, setDescription] = useState<string>('');
-  const [category, setCategory] = useState<string>('');
-  const [receipt, setReceipt] = useState<File | null>(null);
-  
-  // Stats
-  const [monthlyExpense, setMonthlyExpense] = useState<number>(0);
-  const [monthlyIncome, setMonthlyIncome] = useState<number>(0);
-  const [categoryData, setCategoryData] = useState<any[]>([]);
-  
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: 0,
+      date: new Date().toISOString().split('T')[0],
+      type: "expense",
+      category: "",
+      description: "",
+    },
+  });
+
+  const editForm = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: 0,
+      date: new Date().toISOString().split('T')[0],
+      type: "expense",
+      category: "",
+      description: "",
+    },
+  });
+
+  // Fetch transactions on component mount
   useEffect(() => {
     document.title = "Expense Tracker | Accountly";
-    if (user) {
-      fetchTransactions();
+    fetchTransactions();
+  }, []);
+
+  // Populate edit form when currentTransaction changes
+  useEffect(() => {
+    if (currentTransaction) {
+      editForm.setValue("amount", currentTransaction.amount);
+      editForm.setValue("date", currentTransaction.date);
+      editForm.setValue("type", currentTransaction.type);
+      editForm.setValue("category", currentTransaction.category);
+      editForm.setValue("description", currentTransaction.description || "");
     }
-  }, [user]);
-  
+  }, [currentTransaction, editForm]);
+
   const fetchTransactions = async () => {
-    if (!user) return;
-    
-    setLoading(true);
+    setIsLoading(true);
     try {
-      let query = supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('date', { ascending: false });
-      
-      if (filterMonth) {
-        // Filter by month (YYYY-MM)
-        const startDate = `${filterMonth}-01`;
-        const endMonth = parseInt(filterMonth.split('-')[1]);
-        const endYear = parseInt(filterMonth.split('-')[0]);
-        const endDate = new Date(endYear, endMonth, 0).toISOString().split('T')[0]; // Last day of month
         
-        query = query.gte('date', startDate).lte('date', endDate);
-      }
-      
-      if (filterCategory) {
-        query = query.eq('category', filterCategory);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       setTransactions(data || []);
-      calculateStats(data || []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load transactions. Please try again.',
+        description: 'Failed to load your transactions. Please try again.',
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-  
-  const calculateStats = (data: Transaction[]) => {
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-    
-    // Monthly expense and income
-    let totalExpense = 0;
-    let totalIncome = 0;
-    const categories: Record<string, number> = {};
-    
-    data.forEach(transaction => {
-      if (transaction.date.startsWith(currentMonth)) {
-        if (transaction.type === 'expense') {
-          totalExpense += Number(transaction.amount);
-          
-          // Category data for pie chart
-          if (transaction.category) {
-            categories[transaction.category] = (categories[transaction.category] || 0) + Number(transaction.amount);
-          }
-        } else if (transaction.type === 'income') {
-          totalIncome += Number(transaction.amount);
-        }
-      }
-    });
-    
-    setMonthlyExpense(totalExpense);
-    setMonthlyIncome(totalIncome);
-    
-    // Format category data for pie chart
-    const categoryChartData = Object.entries(categories).map(([name, value]) => ({
-      name,
-      value
-    }));
-    
-    setCategoryData(categoryChartData);
-  };
-  
-  const resetForm = () => {
-    setAmount(0);
-    setDate(new Date().toISOString().split('T')[0]);
-    setType('expense');
-    setDescription('');
-    setCategory('');
-    setReceipt(null);
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to track expenses.',
-        variant: 'destructive',
-      });
-      navigate('/login');
-      return;
-    }
-    
-    if (!amount || !date) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please provide an amount and date.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    setLoading(true);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
     try {
-      let receiptUrl = null;
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // If receipt is uploaded, store it in Supabase Storage
-      if (receipt) {
-        const fileExt = receipt.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${user.id}/${fileName}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('receipts')
-          .upload(filePath, receipt);
-          
-        if (uploadError) {
-          throw uploadError;
-        }
-        
-        // Get public URL for the uploaded file
-        const { data: urlData } = supabase.storage
-          .from('receipts')
-          .getPublicUrl(filePath);
-          
-        receiptUrl = urlData.publicUrl;
-      }
-      
-      // Create transaction record
-      const { error } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          amount,
-          date,
-          type,
-          description,
-          category: category || null,
-          receipt_url: receiptUrl
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to add transactions.',
+          variant: 'destructive',
         });
-        
-      if (error) {
-        throw error;
+        return;
       }
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([
+          { 
+            user_id: user.id,
+            amount: values.type === 'expense' ? -Math.abs(values.amount) : Math.abs(values.amount),
+            date: values.date,
+            type: values.type,
+            category: values.category,
+            description: values.description || null,
+          }
+        ])
+        .select();
+        
+      if (error) throw error;
       
       toast({
         title: 'Success',
-        description: `${type === 'expense' ? 'Expense' : 'Income'} added successfully.`,
+        description: `Your ${values.type} has been added successfully.`,
       });
       
-      resetForm();
-      setAddDialogOpen(false);
       fetchTransactions();
+      form.reset({
+        amount: 0,
+        date: new Date().toISOString().split('T')[0],
+        type: "expense",
+        category: "",
+        description: "",
+      });
     } catch (error) {
       console.error('Error adding transaction:', error);
       toast({
@@ -247,29 +186,24 @@ const ExpenseTracker = () => {
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
-  
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this transaction?')) {
-      return;
-    }
+
+  const handleDeleteTransaction = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this transaction?')) return;
     
-    setLoading(true);
     try {
       const { error } = await supabase
         .from('transactions')
         .delete()
         .eq('id', id);
         
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       toast({
-        title: 'Success',
-        description: 'Transaction deleted successfully.',
+        title: 'Deleted',
+        description: 'Transaction has been deleted successfully.',
       });
       
       fetchTransactions();
@@ -280,381 +214,683 @@ const ExpenseTracker = () => {
         description: 'Failed to delete transaction. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
-  
-  const handleDownloadReport = () => {
-    // Generate CSV data
-    let csvContent = "Date,Type,Category,Description,Amount\n";
+
+  const handleEditTransaction = async (values: z.infer<typeof formSchema>) => {
+    if (!currentTransaction) return;
     
-    transactions.forEach(transaction => {
-      csvContent += `${transaction.date},${transaction.type},${transaction.category || ''},${transaction.description || ''},${transaction.amount}\n`;
-    });
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          amount: values.type === 'expense' ? -Math.abs(values.amount) : Math.abs(values.amount),
+          date: values.date,
+          type: values.type,
+          category: values.category,
+          description: values.description || null,
+        })
+        .eq('id', currentTransaction.id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: 'Updated',
+        description: 'Transaction has been updated successfully.',
+      });
+      
+      setIsEditDialogOpen(false);
+      fetchTransactions();
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update transaction. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUploadReceipt = async () => {
+    if (!currentTransaction || !receiptFile) return;
     
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'expense_report.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setUploadingReceipt(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const fileExt = receiptFile.name.split('.').pop();
+      const fileName = `${user.id}/${currentTransaction.id}-${Date.now()}.${fileExt}`;
+      
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('receipts')
+        .upload(fileName, receiptFile);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('receipts')
+        .getPublicUrl(fileName);
+        
+      // Update transaction with receipt URL
+      const { error: updateError } = await supabase
+        .from('transactions')
+        .update({
+          receipt_url: urlData.publicUrl
+        })
+        .eq('id', currentTransaction.id);
+        
+      if (updateError) throw updateError;
+      
+      toast({
+        title: 'Receipt Uploaded',
+        description: 'Your receipt has been uploaded successfully.',
+      });
+      
+      setIsUploadDialogOpen(false);
+      fetchTransactions();
+    } catch (error) {
+      console.error('Error uploading receipt:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload receipt. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingReceipt(false);
+      setReceiptFile(null);
+    }
+  };
+
+  const filteredTransactions = transactions.filter(transaction => {
+    // Filter by transaction type
+    if (activeTab !== 'all' && transaction.type !== activeTab) return false;
     
-    toast({
-      title: 'Report Downloaded',
-      description: 'Your expense report has been downloaded as a CSV file.',
-    });
+    // Filter by search query
+    if (searchQuery && !transaction.description?.toLowerCase().includes(searchQuery.toLowerCase()) && 
+        !transaction.category.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        
+    return true;
+  });
+
+  // Calculate summary statistics
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+  const balance = totalIncome - totalExpenses;
+
+  // Prepare data for the charts
+  const categoryData = transactions.reduce((acc, t) => {
+    if (t.category) {
+      const existingCategory = acc.find(item => item.name === t.category);
+      
+      if (existingCategory) {
+        existingCategory.value += Math.abs(t.amount);
+      } else {
+        acc.push({
+          name: t.category,
+          value: Math.abs(t.amount)
+        });
+      }
+    }
+    return acc;
+  }, [] as { name: string; value: number }[]);
+
+  // Monthly data
+  const monthlyData = transactions.reduce((acc, t) => {
+    const date = new Date(t.date);
+    const monthYear = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+    
+    const existingMonth = acc.find(item => item.month === monthYear);
+    
+    if (existingMonth) {
+      if (t.type === 'income') {
+        existingMonth.income += Math.abs(t.amount);
+      } else {
+        existingMonth.expense += Math.abs(t.amount);
+      }
+    } else {
+      acc.push({
+        month: monthYear,
+        income: t.type === 'income' ? Math.abs(t.amount) : 0,
+        expense: t.type === 'expense' ? Math.abs(t.amount) : 0
+      });
+    }
+    
+    return acc;
+  }, [] as { month: string; income: number; expense: number }[]);
+
+  // Sort monthly data chronologically
+  monthlyData.sort((a, b) => {
+    const monthA = new Date(a.month);
+    const monthB = new Date(b.month);
+    return monthA.getTime() - monthB.getTime();
+  });
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(value);
   };
-  
-  const getUniqueCategories = () => {
-    const categories = transactions
-      .map(t => t.category)
-      .filter((category, index, self) => 
-        category && self.indexOf(category) === index
-      );
-    return categories;
+
+  const toFixedNumber = (value: any): number => {
+    if (typeof value === 'number') {
+      return Number(value.toFixed(2));
+    }
+    return 0;
   };
-  
-  const getUniqueMonths = () => {
-    const months = transactions
-      .map(t => t.date.slice(0, 7)) // Get YYYY-MM
-      .filter((month, index, self) => self.indexOf(month) === index)
-      .sort((a, b) => b.localeCompare(a)); // Sort descending
-    return months;
-  };
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="flex-grow pt-28 pb-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-semibold mb-2">Expense Tracker</h1>
-              <p className="text-gray-600">Track your income and expenses to manage your finances better</p>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                onClick={() => setAddDialogOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus size={16} />
-                Add Transaction
-              </Button>
-              
-              <SubscriptionGuard requiredTier="starter">
-                <Button 
-                  variant="outline"
-                  onClick={handleDownloadReport}
-                  className="flex items-center gap-2"
-                >
-                  <Download size={16} />
-                  Export Report
-                </Button>
-              </SubscriptionGuard>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-blue-500" />
-                  Monthly Summary
-                </CardTitle>
-                <CardDescription>Current month overview</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <ArrowDownCircle className="h-5 w-5 text-green-500" />
-                      <span>Income</span>
-                    </div>
-                    <span className="font-semibold text-green-500">${monthlyIncome.toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <ArrowUpCircle className="h-5 w-5 text-red-500" />
-                      <span>Expenses</span>
-                    </div>
-                    <span className="font-semibold text-red-500">${monthlyExpense.toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="pt-2 border-t flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-blue-500" />
-                      <span className="font-medium">Balance</span>
-                    </div>
-                    <span className="font-semibold text-lg">${(monthlyIncome - monthlyExpense).toFixed(2)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="md:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Expense Breakdown</CardTitle>
-                <CardDescription>By category for current month</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[200px]">
-                {categoryData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-gray-500">
-                    No expense data available for this month
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {categoryData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, '']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
+      <div className="container mx-auto px-4 py-8 flex-grow">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Expense Tracker</h1>
+          <p className="text-gray-500 mt-1">Track your income and expenses</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Add Transaction Form */}
+          <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Transaction History</span>
-                
-                <div className="flex items-center gap-2">
-                  <Select value={filterMonth} onValueChange={setFilterMonth}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Months</SelectItem>
-                      {getUniqueMonths().map(month => (
-                        <SelectItem key={month} value={month}>
-                          {new Date(month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={filterCategory} onValueChange={setFilterCategory}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
-                      {getUniqueCategories().map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={fetchTransactions}
-                    title="Apply Filters"
-                  >
-                    <Filter size={16} />
-                  </Button>
-                </div>
-              </CardTitle>
+              <CardTitle>Add Transaction</CardTitle>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                </div>
-              ) : transactions.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 mb-4">No transactions found.</p>
-                  <Button 
-                    onClick={() => setAddDialogOpen(true)}
-                    variant="outline"
-                  >
-                    Add Your First Transaction
-                  </Button>
-                </div>
-              ) : (
-                <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>
-                            {new Date(transaction.date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <span className={transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}>
-                              {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                            </span>
-                          </TableCell>
-                          <TableCell>{transaction.category || '-'}</TableCell>
-                          <TableCell>{transaction.description || '-'}</TableCell>
-                          <TableCell className={`text-right font-medium ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                            {transaction.type === 'income' ? '+' : '-'}${Number(transaction.amount).toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end">
-                              {transaction.receipt_url && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => window.open(transaction.receipt_url, '_blank')}
-                                  title="View Receipt"
-                                >
-                                  <Receipt size={16} />
-                                </Button>
-                              )}
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => handleDelete(transaction.id)}
-                                title="Delete Transaction"
-                              >
-                                <Trash2 size={16} className="text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Transaction</DialogTitle>
-                <DialogDescription>
-                  Record a new income or expense transaction
-                </DialogDescription>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Transaction Type</Label>
-                    <Select value={type} onValueChange={setType}>
-                      <SelectTrigger id="type">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="expense">Expense</SelectItem>
-                        <SelectItem value="income">Income</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Amount ($)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="0.00" 
+                            type="number" 
+                            step="0.01" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Amount ($)</Label>
-                    <Input 
-                      id="amount"
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={amount || ''}
-                      onChange={(e) => setAmount(Number(e.target.value))}
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
-                  <Input 
-                    id="date"
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input 
-                    id="category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g., Food, Transportation, Salary"
+                  
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="expense">Expense</SelectItem>
+                            <SelectItem value="income">Income</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input 
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Transaction details"
+                  
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {form.watch("type") === "expense" 
+                              ? EXPENSE_CATEGORIES.map(category => (
+                                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                                ))
+                              : INCOME_CATEGORIES.map(category => (
+                                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                                ))
+                            }
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="receipt">Receipt (Optional)</Label>
-                  <Input 
-                    id="receipt"
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={(e) => setReceipt(e.target.files?.[0] || null)}
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Add details about this transaction" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setAddDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? (
+                  
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...
                       </>
                     ) : (
                       <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Transaction
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Transaction
                       </>
                     )}
                   </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+          {/* Summary Stats and Charts */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Financial Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-green-700">Total Income</h3>
+                  <p className="text-2xl font-bold text-green-700">{formatCurrency(totalIncome)}</p>
+                </div>
+                
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-red-700">Total Expenses</h3>
+                  <p className="text-2xl font-bold text-red-700">{formatCurrency(totalExpenses)}</p>
+                </div>
+                
+                <div className={`p-4 rounded-lg ${balance >= 0 ? 'bg-blue-50' : 'bg-amber-50'}`}>
+                  <h3 className={`text-sm font-medium ${balance >= 0 ? 'text-blue-700' : 'text-amber-700'}`}>Balance</h3>
+                  <p className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-700' : 'text-amber-700'}`}>
+                    {formatCurrency(balance)}
+                  </p>
+                </div>
+              </div>
+              
+              <SubscriptionGuard requiredTier="starter">
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={monthlyData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis tickFormatter={(value) => `$${toFixedNumber(value)}`} />
+                      <Tooltip formatter={(value) => [`$${toFixedNumber(value)}`, '']} />
+                      <Legend />
+                      <Bar dataKey="income" name="Income" fill="#4ade80" />
+                      <Bar dataKey="expense" name="Expense" fill="#f87171" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="mt-4 flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/reports')}
+                    className="flex items-center"
+                  >
+                    <PieChart className="mr-2 h-4 w-4" />
+                    View Detailed Reports
+                  </Button>
+                </div>
+              </SubscriptionGuard>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Transactions List */}
+        <Card className="mt-6">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+              <CardTitle>Transactions</CardTitle>
+              
+              <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder="Search transactions"
+                    className="pl-8 max-w-xs"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                <Select onValueChange={(value) => setActiveTab(value)} defaultValue="all">
+                  <SelectTrigger className="w-[130px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              </div>
+            ) : filteredTransactions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {searchQuery 
+                  ? "No transactions found matching your search."
+                  : "No transactions yet. Add your first transaction above."}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTransactions.map((transaction) => (
+                      <tr key={transaction.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {transaction.description || "-"}
+                          {transaction.receipt_url && (
+                            <a 
+                              href={transaction.receipt_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="ml-2 text-blue-500 hover:text-blue-700"
+                            >
+                              (Receipt)
+                            </a>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {transaction.category}
+                        </td>
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end gap-2">
+                            {!transaction.receipt_url && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setCurrentTransaction(transaction);
+                                  setIsUploadDialogOpen(true);
+                                }}
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setCurrentTransaction(transaction);
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteTransaction(transaction.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+      
+      {/* Edit Transaction Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Transaction</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleEditTransaction)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount ($)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="0.00" 
+                        type="number" 
+                        step="0.01" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={editForm.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={editForm.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="expense">Expense</SelectItem>
+                        <SelectItem value="income">Income</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={editForm.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {editForm.watch("type") === "expense" 
+                          ? EXPENSE_CATEGORIES.map(category => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))
+                          : INCOME_CATEGORIES.map(category => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))
+                        }
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={editForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Add details about this transaction" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-2">
+                <Button type="submit" className="w-full">
+                  Save Changes
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Upload Receipt Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Receipt</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="receipt">Select file</Label>
+              <Input 
+                id="receipt" 
+                type="file" 
+                accept="image/*,.pdf" 
+                className="mt-1"
+                onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Accepted formats: JPG, PNG, PDF (max 5MB)
+              </p>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={handleUploadReceipt}
+                disabled={!receiptFile || uploadingReceipt}
+                className="w-full"
+              >
+                {uploadingReceipt ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Receipt
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>

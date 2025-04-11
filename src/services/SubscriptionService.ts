@@ -70,8 +70,8 @@ export const SubscriptionService = {
         // Create a subscription record in our database
         const subData = {
           user_id: user.id,
-          tier: response.tier,
-          status: 'active',
+          tier: response.tier as SubscriptionTier,
+          status: 'active' as const,
           current_period_end: response.current_period_end,
           cancel_at_period_end: response.cancel_at_period_end
         };
