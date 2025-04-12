@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SubscriptionService, Subscription, SubscriptionTier } from '@/services/SubscriptionService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +49,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     fetchSubscription();
   }, [user]);
   
+  // Always grant access to all tiers during testing mode
   const hasAccess = (tier: SubscriptionTier): boolean => {
     return true;
   };

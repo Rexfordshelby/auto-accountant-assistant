@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AIChatbot from './AIChatbot';
@@ -9,6 +8,7 @@ import OnboardingFlow from './OnboardingFlow';
 import NotificationCenter from './NotificationCenter';
 import GlobalSearch from './GlobalSearch';
 import ThemeToggle from './ThemeToggle';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 interface AppWrapperProps {
   children: React.ReactNode;
@@ -41,35 +41,37 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
   };
 
   return (
-    <>
-      {children}
-      
-      {/* Fixed position elements */}
-      <div className="fixed top-6 right-6 z-30 flex items-center gap-4">
-        {/* Global search and theme toggle already handled in Navbar */}
-      </div>
-      
-      {/* Chatbot button */}
-      {user && (
-        <div className="fixed bottom-6 right-6 z-40">
-          <Button 
-            onClick={toggleChat}
-            className="rounded-full h-14 w-14 shadow-lg"
-            aria-label="Open AI assistant"
-          >
-            {isChatOpen ? <X className="h-6 w-6" /> : <MessageSquare className="h-6 w-6" />}
-          </Button>
+    <CurrencyProvider>
+      <>
+        {children}
+        
+        {/* Fixed position elements */}
+        <div className="fixed top-6 right-6 z-30 flex items-center gap-4">
+          {/* Global search and theme toggle already handled in Navbar */}
         </div>
-      )}
-      
-      {/* AI Chatbot */}
-      <AIChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-      
-      {/* Onboarding Flow */}
-      {showOnboarding && user && (
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
-      )}
-    </>
+        
+        {/* Chatbot button */}
+        {user && (
+          <div className="fixed bottom-6 right-6 z-40">
+            <Button 
+              onClick={toggleChat}
+              className="rounded-full h-14 w-14 shadow-lg"
+              aria-label="Open AI assistant"
+            >
+              {isChatOpen ? <X className="h-6 w-6" /> : <MessageSquare className="h-6 w-6" />}
+            </Button>
+          </div>
+        )}
+        
+        {/* AI Chatbot */}
+        <AIChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+        
+        {/* Onboarding Flow */}
+        {showOnboarding && user && (
+          <OnboardingFlow onComplete={handleOnboardingComplete} />
+        )}
+      </>
+    </CurrencyProvider>
   );
 };
 

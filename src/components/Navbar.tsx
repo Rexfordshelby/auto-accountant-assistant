@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,14 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   
+  const toolLinks = [
+    { href: "/tools/tax-calculator", label: "Tax Calculator" },
+    { href: "/tools/expense-tracker", label: "Expense Tracker" },
+    { href: "/tools/invoice-generator", label: "Invoice Generator" },
+    { href: "/tools/financial-projections", label: "Financial Projections" },
+    { href: "/tools/currency-exchange", label: "Currency Exchange" },
+  ];
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -72,10 +79,9 @@ const Navbar = () => {
                 </span>
                 <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <div className="py-1">
-                    <Link to="/tools/tax-calculator" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Tax Calculator</Link>
-                    <Link to="/tools/expense-tracker" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Expense Tracker</Link>
-                    <Link to="/tools/invoice-generator" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Invoice Generator</Link>
-                    <Link to="/tools/financial-projections" className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Financial Projections</Link>
+                    {toolLinks.map(link => (
+                      <Link key={link.href} to={link.href} className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">{link.label}</Link>
+                    ))}
                   </div>
                 </div>
               </div>
