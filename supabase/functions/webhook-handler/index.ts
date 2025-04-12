@@ -5,8 +5,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 serve(async (req) => {
   try {
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with your secret key
+    const stripe = new Stripe("sk_test_51RCdKmQvBO9bv1fpDy6rcnWH4GWeQDLovcSq2SSBm6srQxyLcErD4S4CAs4X8EPkjaBeewHDBj8vVIbYbtq0pt4M005oP3ssin", {
       apiVersion: "2023-10-16",
     });
     
@@ -21,10 +21,14 @@ serve(async (req) => {
     const body = await req.text();
     
     // Verify the event
+    // Note: You'll need to configure STRIPE_WEBHOOK_SECRET in your Supabase Edge Functions
+    // For now, we'll use a placeholder - you should set this up in Stripe Dashboard
+    const webhookSecret = "whsec_PLACEHOLDER_REPLACE_WITH_YOUR_WEBHOOK_SECRET";
+    
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
-      Deno.env.get("STRIPE_WEBHOOK_SECRET") || ""
+      webhookSecret
     );
     
     // Initialize Supabase client

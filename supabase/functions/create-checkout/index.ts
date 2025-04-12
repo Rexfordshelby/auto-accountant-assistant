@@ -38,8 +38,8 @@ serve(async (req) => {
     
     const user = userData.user;
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with your secret key
+    const stripe = new Stripe("sk_test_51RCdKmQvBO9bv1fpDy6rcnWH4GWeQDLovcSq2SSBm6srQxyLcErD4S4CAs4X8EPkjaBeewHDBj8vVIbYbtq0pt4M005oP3ssin", {
       apiVersion: "2023-10-16",
     });
 

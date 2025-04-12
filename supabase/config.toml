@@ -210,3 +210,6 @@ redirect_uri = ""
 [functions]
 [functions.ai-assistant]
 verify_jwt = true
+
+[functions.webhook-handler]
+verify_jwt = false

@@ -32,8 +32,8 @@ serve(async (req) => {
     
     const user = userData.user;
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with your secret key
+    const stripe = new Stripe("sk_test_51RCdKmQvBO9bv1fpDy6rcnWH4GWeQDLovcSq2SSBm6srQxyLcErD4S4CAs4X8EPkjaBeewHDBj8vVIbYbtq0pt4M005oP3ssin", {
       apiVersion: "2023-10-16",
     });
 
@@ -74,11 +74,9 @@ serve(async (req) => {
     const subscription = subscriptions.data[0];
     
     // Map the price ID to a tier
-    // This is a simplified example; in a real application, you would have price IDs configured
     let tier = "free";
     
-    // In a real application, you would match the price IDs with your defined tiers
-    // For this example, we'll extract tier information from metadata
+    // Extract tier information from metadata
     const items = subscription.items.data;
     if (items.length > 0) {
       const product = await stripe.products.retrieve(items[0].price.product as string);
