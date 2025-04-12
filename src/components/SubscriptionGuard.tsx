@@ -5,7 +5,7 @@ import { SubscriptionTier } from '@/services/SubscriptionService';
 import { Link } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Shield, Loader2 } from 'lucide-react';
+import { Shield, Loader2, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface SubscriptionGuardProps {
@@ -35,6 +35,11 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
     );
   }
   
+  // Always show the feature in test mode (all features are free)
+  return <>{children}</>;
+  
+  // Note: The following code is commented out while in testing mode
+  /*
   if (!hasAccess(requiredTier)) {
     if (fallback) {
       return <>{fallback}</>;
@@ -59,8 +64,7 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
       </Alert>
     );
   }
-  
-  return <>{children}</>;
+  */
 };
 
 export default SubscriptionGuard;

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SubscriptionService, Subscription, SubscriptionTier } from '@/services/SubscriptionService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,16 +49,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   }, [user]);
   
   const hasAccess = (tier: SubscriptionTier): boolean => {
-    if (!subscription) return tier === 'free';
-    
-    const tierLevels = {
-      'free': 0,
-      'starter': 1,
-      'professional': 2,
-      'enterprise': 3
-    };
-    
-    return tierLevels[subscription.tier] >= tierLevels[tier];
+    return true;
   };
   
   const upgradeSubscription = async (tier: SubscriptionTier): Promise<string | null> => {

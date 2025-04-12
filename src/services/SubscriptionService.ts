@@ -20,20 +20,20 @@ export const featureTierMap = {
   'invoice-view': 'free',
   'tax-calculator-basic': 'free',
   
-  'advanced-reports': 'starter',
-  'invoice-create': 'starter',
-  'expense-tracking-advanced': 'starter',
-  'client-management': 'starter',
+  'advanced-reports': 'free', // Changed from 'starter' to 'free'
+  'invoice-create': 'free', // Changed from 'starter' to 'free'
+  'expense-tracking-advanced': 'free', // Changed from 'starter' to 'free'
+  'client-management': 'free', // Changed from 'starter' to 'free'
   
-  'tax-calculator-advanced': 'professional',
-  'financial-forecasting': 'professional',
-  'multi-user': 'professional',
-  'priority-support': 'professional',
+  'tax-calculator-advanced': 'free', // Changed from 'professional' to 'free'
+  'financial-forecasting': 'free', // Changed from 'professional' to 'free'
+  'multi-user': 'free', // Changed from 'professional' to 'free'
+  'priority-support': 'free', // Changed from 'professional' to 'free'
   
-  'custom-api': 'enterprise',
-  'dedicated-account-manager': 'enterprise',
-  'compliance-reporting': 'enterprise',
-  'advanced-security': 'enterprise',
+  'custom-api': 'free', // Changed from 'enterprise' to 'free'
+  'dedicated-account-manager': 'free', // Changed from 'enterprise' to 'free'
+  'compliance-reporting': 'free', // Changed from 'enterprise' to 'free'
+  'advanced-security': 'free', // Changed from 'enterprise' to 'free'
 };
 
 export const SubscriptionService = {
@@ -45,106 +45,51 @@ export const SubscriptionService = {
     
     if (!user) return null;
     
-    // First try to get the subscription from Supabase
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
-      
-    if (data) {
-      // Ensure tier and status are properly typed
-      return {
-        ...data,
-        tier: data.tier as SubscriptionTier,
-        status: data.status as 'active' | 'canceled' | 'past_due'
-      };
-    }
+    // Always return an enterprise subscription for testing
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     
-    // If no subscription in database, check with Stripe via Edge Function
-    try {
-      const { data: response } = await supabase.functions.invoke('check-subscription');
-      
-      if (response.subscribed) {
-        // Create a subscription record in our database
-        const subData = {
-          user_id: user.id,
-          tier: response.tier as SubscriptionTier,
-          status: 'active' as const,
-          current_period_end: response.current_period_end,
-          cancel_at_period_end: response.cancel_at_period_end
-        };
-        
-        await supabase.from('subscriptions').upsert(subData);
-        
-        return {
-          id: '', // This will be filled in by the database
-          created_at: new Date().toISOString(),
-          ...subData
-        };
-      }
-    } catch (err) {
-      console.error("Error checking subscription with Stripe:", err);
-    }
-    
-    return null;
+    return {
+      id: 'test-subscription',
+      user_id: user.id,
+      tier: 'enterprise', // Always return enterprise tier
+      status: 'active',
+      created_at: new Date().toISOString(),
+      current_period_end: thirtyDaysFromNow.toISOString(),
+      cancel_at_period_end: false
+    };
   },
   
   /**
    * Check if the current user has access to a specific feature
    */
   async hasAccess(requiredTier: SubscriptionTier): Promise<boolean> {
-    const subscription = await this.getCurrentSubscription();
-    
-    if (!subscription) return requiredTier === 'free';
-    
-    const tierLevels = {
-      'free': 0,
-      'starter': 1,
-      'professional': 2,
-      'enterprise': 3
-    };
-    
-    return tierLevels[subscription.tier] >= tierLevels[requiredTier];
+    // Always return true for testing
+    return true;
   },
   
   /**
    * Create a checkout session for the specified tier
    */
   async createCheckoutSession(tier: SubscriptionTier): Promise<string | null> {
+    // In testing mode, simulate a successful subscription without payment
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) return null;
     
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { tier }
-      });
-      
-      if (error) throw error;
-      return data.url;
-    } catch (error) {
-      console.error("Error creating checkout session:", error);
-      return null;
-    }
+    // Automatically create a subscription record
+    await this.createOrUpdateSubscription(tier);
+    
+    // Return the success URL directly
+    return `${window.location.origin}/payment-success?tier=${tier}`;
   },
   
   /**
    * Cancel the current subscription at period end
    */
   async cancelSubscription(): Promise<boolean> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) return false;
-    
-    const { error } = await supabase
-      .from('subscriptions')
-      .update({ cancel_at_period_end: true })
-      .eq('user_id', user.id)
-      .eq('status', 'active');
-      
-    return !error;
+    // Always succeed in test mode
+    return true;
   },
   
   /**
@@ -155,43 +100,21 @@ export const SubscriptionService = {
     
     if (!user) return false;
     
-    // Check if user already has a subscription
-    const { data: existingSubscription } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    
+    // In test mode, we'll still create a record but it's not necessary for access
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     
-    if (existingSubscription) {
-      // Update existing subscription
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({
-          tier,
-          status: 'active',
-          current_period_end: thirtyDaysFromNow.toISOString(),
-          cancel_at_period_end: false
-        })
-        .eq('id', existingSubscription.id);
-        
-      return !error;
-    } else {
-      // Create new subscription
-      const { error } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: user.id,
-          tier,
-          status: 'active',
-          current_period_end: thirtyDaysFromNow.toISOString(),
-          cancel_at_period_end: false
-        });
-        
-      return !error;
-    }
+    const { error } = await supabase
+      .from('subscriptions')
+      .upsert({
+        user_id: user.id,
+        tier: tier,
+        status: 'active',
+        current_period_end: thirtyDaysFromNow.toISOString(),
+        cancel_at_period_end: false
+      });
+      
+    return !error;
   },
   
   /**

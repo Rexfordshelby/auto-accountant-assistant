@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SubscriptionPlans from '../components/SubscriptionPlans';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 const Pricing = () => {
   useEffect(() => {
@@ -16,6 +18,15 @@ const Pricing = () => {
       
       <section className="pt-28 pb-20 px-6">
         <div className="max-w-7xl mx-auto text-center">
+          <Alert className="mb-12 border-amber-200 bg-amber-50 max-w-3xl mx-auto">
+            <Info className="h-5 w-5 text-amber-600" />
+            <AlertTitle className="text-amber-800">Testing Mode Active</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              All features are currently available without subscription for testing purposes. 
+              Subscription functionality is disabled but will be restored in the production version.
+            </AlertDescription>
+          </Alert>
+          
           <h1 className="text-5xl md:text-6xl font-semibold mb-6">Simple, transparent pricing</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-12">
             Choose the perfect plan for your business needs with no hidden fees
