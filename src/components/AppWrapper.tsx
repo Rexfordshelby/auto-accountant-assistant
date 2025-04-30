@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AIChatbot from './AIChatbot';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, X } from 'lucide-react';
+import { MessageSquare, X, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import OnboardingFlow from './OnboardingFlow';
 import NotificationCenter from './NotificationCenter';
@@ -11,6 +11,7 @@ import GlobalSearch from './GlobalSearch';
 import ThemeToggle from './ThemeToggle';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import CurrencySelector from './CurrencySelector';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AppWrapperProps {
   children: React.ReactNode;
@@ -73,10 +74,36 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
           <OnboardingFlow onComplete={handleOnboardingComplete} />
         )}
 
-        {/* Currency Testing Mode Note */}
-        <div className="fixed bottom-3 left-3 z-30 text-xs text-gray-500 bg-white/80 p-1 rounded-md">
-          Using mock exchange rate data
-        </div>
+        {/* Testing Mode and Currency Info */}
+        <TooltipProvider>
+          <div className="fixed bottom-3 left-3 z-30 flex flex-col space-y-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-xs flex items-center bg-blue-500/10 text-blue-700 dark:text-blue-300 p-2 rounded-md">
+                  <Info className="h-3 w-3 mr-1" />
+                  <span>INVESTOR DEMO MODE</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p className="max-w-xs">
+                  All features are enabled for demonstration. All data is simulated including exchange rates, tax calculations, and financial reports.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-xs flex items-center bg-white/80 dark:bg-gray-800/80 text-gray-600 dark:text-gray-400 p-2 rounded-md">
+                  <Info className="h-3 w-3 mr-1" />
+                  <span>Using simulated exchange rate data</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Mock exchange rates are being used. In production, live rates from APIs would be used.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </>
     </CurrencyProvider>
   );

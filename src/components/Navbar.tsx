@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import NotificationCenter from './NotificationCenter';
+import CurrencySelector from './CurrencySelector';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ChevronDown, User, FileText, BarChart2, TrendingUp, Users, Settings, LogOut } from 'lucide-react';
 
@@ -42,7 +44,7 @@ const Navbar = () => {
   const isAuthenticated = !!user;
   
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${isScrolled ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${isScrolled ? 'bg-white dark:bg-gray-900 shadow-sm' : 'bg-white dark:bg-gray-900'}`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -108,6 +110,7 @@ const Navbar = () => {
           
           <div className="hidden md:flex items-center space-x-4">
             <GlobalSearch />
+            <CurrencySelector compact={true} />
             
             {isAuthenticated ? (
               <>
@@ -165,9 +168,9 @@ const Navbar = () => {
                         Reports
                       </Link>
                       
-                      <Link to="/integrations" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md mx-1">
+                      <Link to="/company-settings" className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md mx-1">
                         <Settings className="h-4 w-4 mr-2" />
-                        Integrations
+                        Company Settings
                       </Link>
 
                       <div className="border-t my-1"></div>
@@ -218,12 +221,13 @@ const Navbar = () => {
       </div>
       
       {isMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden bg-white dark:bg-gray-900 shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link to="/tax-services" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Tax Services</Link>
             <Link to="/financial-advisory" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Financial Advisory</Link>
             <Link to="/tools/tax-calculator" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Tax Calculator</Link>
             <Link to="/tools/invoice-generator" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Invoice Generator</Link>
+            <Link to="/tools/currency-exchange" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Currency Exchange</Link>
             <Link to="/blog" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Blog</Link>
             <Link to="/about" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">About</Link>
             <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Contact</Link>
@@ -234,6 +238,10 @@ const Navbar = () => {
                 <Link to="/profile" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Profile</Link>
                 <Link to="/clients" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Clients</Link>
                 <Link to="/reports" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Reports</Link>
+                <Link to="/company-settings" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700">Company Settings</Link>
+                <div className="flex items-center px-3 py-2">
+                  <CurrencySelector />
+                </div>
                 <button 
                   onClick={signOut}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700"
