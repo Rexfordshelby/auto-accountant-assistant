@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +28,8 @@ import CompanySettingsPage from "./pages/CompanySettingsPage";
 import Accounting from "./pages/Services/Accounting";
 import Audit from "./pages/Services/Audit";
 import Compliance from "./pages/Services/Compliance";
+import TeamAccountants from "./pages/Services/TeamAccountants";
+import PersonalCA from "./pages/Services/PersonalCA";
 import ExpenseTracker from "./pages/Tools/ExpenseTracker";
 import InvoiceGenerator from "./pages/Tools/InvoiceGenerator";
 import FinancialProjections from "./pages/Tools/FinancialProjections";
@@ -87,6 +90,8 @@ function App() {
                   <Route path="/services/accounting" element={<Accounting />} />
                   <Route path="/services/audit" element={<Audit />} />
                   <Route path="/services/compliance" element={<Compliance />} />
+                  <Route path="/services/team-accountants" element={<TeamAccountants />} />
+                  <Route path="/services/personal-ca" element={<PersonalCA />} />
                   
                   <Route path="/tools/tax-calculator" element={<TaxCalculator />} />
                   <Route path="/tools/expense-tracker" element={<ExpenseTracker />} />
