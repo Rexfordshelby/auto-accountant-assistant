@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AIChatbot from './AIChatbot';
@@ -9,6 +10,7 @@ import NotificationCenter from './NotificationCenter';
 import GlobalSearch from './GlobalSearch';
 import ThemeToggle from './ThemeToggle';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import CurrencySelector from './CurrencySelector';
 
 interface AppWrapperProps {
   children: React.ReactNode;
@@ -70,6 +72,11 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
         {showOnboarding && user && (
           <OnboardingFlow onComplete={handleOnboardingComplete} />
         )}
+
+        {/* Currency Testing Mode Note */}
+        <div className="fixed bottom-3 left-3 z-30 text-xs text-gray-500 bg-white/80 p-1 rounded-md">
+          Using mock exchange rate data
+        </div>
       </>
     </CurrencyProvider>
   );

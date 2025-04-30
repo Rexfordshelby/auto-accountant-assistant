@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,136 @@ interface CountryTaxRules {
 }
 
 const COUNTRIES_TAX_RULES: CountryTaxRules[] = [
-  // ... same data as before
+  {
+    name: 'United States',
+    code: 'us',
+    currency: 'USD',
+    symbol: '$',
+    standardDeduction: {
+      single: 12950,
+      married: 25900
+    },
+    brackets: {
+      single: [
+        { min: 0, max: 10275, rate: 0.10 },
+        { min: 10276, max: 41775, rate: 0.12 },
+        { min: 41776, max: 89075, rate: 0.22 },
+        { min: 89076, max: 170050, rate: 0.24 },
+        { min: 170051, max: 215950, rate: 0.32 },
+        { min: 215951, max: 539900, rate: 0.35 },
+        { min: 539901, max: null, rate: 0.37 }
+      ],
+      married: [
+        { min: 0, max: 20550, rate: 0.10 },
+        { min: 20551, max: 83550, rate: 0.12 },
+        { min: 83551, max: 178150, rate: 0.22 },
+        { min: 178151, max: 340100, rate: 0.24 },
+        { min: 340101, max: 431900, rate: 0.32 },
+        { min: 431901, max: 647850, rate: 0.35 },
+        { min: 647851, max: null, rate: 0.37 }
+      ]
+    }
+  },
+  {
+    name: 'Canada',
+    code: 'ca',
+    currency: 'CAD',
+    symbol: 'C$',
+    standardDeduction: {
+      single: 13808,
+      married: 13808
+    },
+    brackets: {
+      single: [
+        { min: 0, max: 49020, rate: 0.15 },
+        { min: 49021, max: 98040, rate: 0.205 },
+        { min: 98041, max: 151978, rate: 0.26 },
+        { min: 151979, max: 216511, rate: 0.29 },
+        { min: 216512, max: null, rate: 0.33 }
+      ],
+      married: [
+        { min: 0, max: 49020, rate: 0.15 },
+        { min: 49021, max: 98040, rate: 0.205 },
+        { min: 98041, max: 151978, rate: 0.26 },
+        { min: 151979, max: 216511, rate: 0.29 },
+        { min: 216512, max: null, rate: 0.33 }
+      ]
+    }
+  },
+  {
+    name: 'United Kingdom',
+    code: 'uk',
+    currency: 'GBP',
+    symbol: '£',
+    standardDeduction: {
+      single: 12570,
+      married: 12570
+    },
+    brackets: {
+      single: [
+        { min: 0, max: 12570, rate: 0 },
+        { min: 12571, max: 50270, rate: 0.20 },
+        { min: 50271, max: 150000, rate: 0.40 },
+        { min: 150001, max: null, rate: 0.45 }
+      ],
+      married: [
+        { min: 0, max: 12570, rate: 0 },
+        { min: 12571, max: 50270, rate: 0.20 },
+        { min: 50271, max: 150000, rate: 0.40 },
+        { min: 150001, max: null, rate: 0.45 }
+      ]
+    }
+  },
+  {
+    name: 'Australia',
+    code: 'au',
+    currency: 'AUD',
+    symbol: 'A$',
+    standardDeduction: {
+      single: 18200,
+      married: 18200
+    },
+    brackets: {
+      single: [
+        { min: 0, max: 18200, rate: 0 },
+        { min: 18201, max: 45000, rate: 0.19 },
+        { min: 45001, max: 120000, rate: 0.325 },
+        { min: 120001, max: 180000, rate: 0.37 },
+        { min: 180001, max: null, rate: 0.45 }
+      ],
+      married: [
+        { min: 0, max: 18200, rate: 0 },
+        { min: 18201, max: 45000, rate: 0.19 },
+        { min: 45001, max: 120000, rate: 0.325 },
+        { min: 120001, max: 180000, rate: 0.37 },
+        { min: 180001, max: null, rate: 0.45 }
+      ]
+    }
+  },
+  {
+    name: 'Germany',
+    code: 'de',
+    currency: 'EUR',
+    symbol: '€',
+    standardDeduction: {
+      single: 9744,
+      married: 19488
+    },
+    brackets: {
+      single: [
+        { min: 0, max: 9744, rate: 0 },
+        { min: 9745, max: 58596, rate: 0.42 },
+        { min: 58597, max: 277825, rate: 0.42 },
+        { min: 277826, max: null, rate: 0.45 }
+      ],
+      married: [
+        { min: 0, max: 19488, rate: 0 },
+        { min: 19489, max: 117192, rate: 0.42 },
+        { min: 117193, max: 555650, rate: 0.42 },
+        { min: 555651, max: null, rate: 0.45 }
+      ]
+    }
+  }
 ];
 
 const TaxCalculator = () => {
@@ -78,7 +208,7 @@ const TaxCalculator = () => {
     const taxable = Math.max(0, incomeValue - deductionsValue);
     setTaxableIncome(taxable);
     
-    let totalTax = 0;
+    let calculatedTax = 0;
     const brackets = countryRules.brackets[filingStatus];
     
     for (let i = 0; i < brackets.length; i++) {
@@ -87,7 +217,7 @@ const TaxCalculator = () => {
       
       if (taxable > min) {
         const taxableInThisBracket = Math.min(nextMin - min, taxable - min);
-        totalTax += taxableInThisBracket * rate;
+        calculatedTax += taxableInThisBracket * rate;
         
         if (taxable >= min) {
           setMarginalRate(rate * 100);
@@ -113,10 +243,10 @@ const TaxCalculator = () => {
     }
     
     setLocalTax(additionalTax);
-    totalTax += additionalTax;
+    calculatedTax += additionalTax;
     
-    setTax(totalTax);
-    setEffectiveRate(incomeValue > 0 ? (totalTax / incomeValue) * 100 : 0);
+    setTax(calculatedTax);
+    setEffectiveRate(incomeValue > 0 ? (calculatedTax / incomeValue) * 100 : 0);
     setShowResults(true);
     
     toast({
@@ -380,7 +510,7 @@ const TaxCalculator = () => {
                       
                       <div className="flex justify-between items-center pb-2 border-b border-gray-200">
                         <span className="text-gray-600">Federal/National Tax:</span>
-                        <span className="font-medium">{formatCurrency(totalTax - localTax)}</span>
+                        <span className="font-medium">{formatCurrency(tax - localTax)}</span>
                       </div>
                       
                       {localTax > 0 && (
@@ -392,7 +522,7 @@ const TaxCalculator = () => {
                       
                       <div className="flex justify-between items-center pb-2 border-b border-gray-200">
                         <span className="text-gray-600">Total Estimated Tax:</span>
-                        <span className="font-semibold text-blue-600">{formatCurrency(Math.round(totalTax))}</span>
+                        <span className="font-semibold text-blue-600">{formatCurrency(Math.round(tax))}</span>
                       </div>
                       
                       <div className="flex justify-between items-center pb-2 border-b border-gray-200">
