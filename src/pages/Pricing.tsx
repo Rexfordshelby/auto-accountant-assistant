@@ -18,23 +18,23 @@ const Pricing = () => {
       
       <section className="pt-28 pb-20 px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <Alert className="mb-12 border-amber-200 bg-amber-50 max-w-3xl mx-auto">
-            <Info className="h-5 w-5 text-amber-600" />
-            <AlertTitle className="text-amber-800">Testing Mode Active</AlertTitle>
-            <AlertDescription className="text-amber-700">
-              All features are currently available without subscription for testing purposes. 
-              Subscription functionality is disabled but will be restored in the production version.
+          <Alert className="mb-12 border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 max-w-3xl mx-auto">
+            <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <AlertTitle className="text-amber-800 dark:text-amber-300">Investor Demo Mode Active</AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-400">
+              All features are currently available for demonstration purposes. 
+              In this demo, you can navigate through the subscription process without real payments.
             </AlertDescription>
           </Alert>
           
           <h1 className="text-5xl md:text-6xl font-semibold mb-6">Simple, transparent pricing</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-12">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-12">
             Choose the perfect plan for your business needs with no hidden fees
           </p>
           
           <SubscriptionPlans />
           
-          <div className="mt-20 bg-gray-50 dark:bg-gray-800 rounded-2xl p-10 text-left">
+          <div className="mt-20 bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-10 text-left">
             <h2 className="text-3xl font-semibold mb-6">Frequently Asked Questions</h2>
             
             <Accordion type="single" collapsible className="w-full">

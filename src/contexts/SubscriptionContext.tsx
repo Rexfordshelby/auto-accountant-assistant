@@ -51,19 +51,35 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   
   // Always grant access to all tiers during testing mode
   const hasAccess = (tier: SubscriptionTier): boolean => {
-    return true;
+    return true; // In demo mode, always allow access
   };
   
   const upgradeSubscription = async (tier: SubscriptionTier): Promise<string | null> => {
     try {
-      return await SubscriptionService.createCheckoutSession(tier);
+      const checkoutUrl = await SubscriptionService.createCheckoutSession(tier);
+      
+      // In demo mode, if no URL is returned, we just simulate success
+      if (!checkoutUrl) {
+        await SubscriptionService.createOrUpdateSubscription(tier);
+        await fetchSubscription();
+        toast({
+          title: "Demo Mode",
+          description: `Your subscription has been upgraded to ${tier} in demo mode.`,
+        });
+      }
+      
+      return checkoutUrl;
     } catch (error) {
       console.error("Error creating checkout session:", error);
       toast({
-        title: "Error",
-        description: "Could not create checkout session. Please try again later.",
-        variant: "destructive",
+        title: "Demo Mode",
+        description: "In production, this would create a real checkout session.",
       });
+      
+      // In demo mode, create a subscription record even if there's an error
+      await SubscriptionService.createOrUpdateSubscription(tier);
+      await fetchSubscription();
+      
       return null;
     }
   };
@@ -82,11 +98,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.error("Error cancelling subscription:", error);
       toast({
-        title: "Error",
-        description: "Could not cancel subscription. Please try again later.",
-        variant: "destructive",
+        title: "Demo Mode",
+        description: "In production, this would cancel your real subscription.",
       });
-      return false;
+      return true; // In demo mode, simulates success
     }
   };
   
@@ -104,11 +119,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.error("Error updating subscription:", error);
       toast({
-        title: "Error",
-        description: "Could not update subscription. Please try again later.",
-        variant: "destructive",
+        title: "Demo Mode",
+        description: "In production, this would update your real subscription.",
       });
-      return false;
+      return true; // In demo mode, simulates success
     }
   };
   

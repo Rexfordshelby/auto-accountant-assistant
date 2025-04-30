@@ -84,8 +84,8 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
                   <span>INVESTOR DEMO MODE</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="right">
-                <p className="max-w-xs">
+              <TooltipContent side="right" className="max-w-sm">
+                <p>
                   All features are enabled for demonstration. All data is simulated including exchange rates, tax calculations, and financial reports.
                 </p>
               </TooltipContent>
