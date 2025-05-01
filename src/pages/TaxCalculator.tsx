@@ -1,18 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, Download, HelpCircle, Globe, Lock, InfoCircle } from 'lucide-react';
+import { Calculator, Download, HelpCircle, Globe, Lock, Info } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SubscriptionGuard from '@/components/SubscriptionGuard';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import DetailedTaxInfo from '@/components/DetailedTaxInfo';
+import TaxSystemInfo from '@/components/TaxSystemInfo';
 import { TAX_SYSTEMS } from '@/utils/taxSystemData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const TaxCalculator = () => {
   const { toast } = useToast();
@@ -52,6 +59,11 @@ const TaxCalculator = () => {
       }
     }
   }, [filingStatus, selectedCountry]);
+
+  // Add scroll to top effect when navigating
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const calculateTax = () => {
     const taxSystem = TAX_SYSTEMS[getCurrentCountryCode()];
@@ -214,23 +226,33 @@ const TaxCalculator = () => {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <Label htmlFor="country">Country</Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                            <Globe size={16} />
-                          </span>
-                          <select
-                            id="country"
-                            className="w-full pl-8 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            value={selectedCountry}
-                            onChange={handleCountryChange}
-                          >
+                        <Select
+                          value={selectedCountry}
+                          onValueChange={(value) => {
+                            setSelectedCountry(value);
+                            setShowResults(false);
+                            setStateProvince("");
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <div className="flex items-center gap-2">
+                              <Globe className="h-4 w-4 text-gray-500" />
+                              <SelectValue placeholder="Select a country" />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
                             {getAvailableCountries().map(country => (
-                              <option key={country.code} value={country.code}>
-                                {country.name} ({country.currency})
-                              </option>
+                              <SelectItem key={country.code} value={country.code}>
+                                <div className="flex items-center gap-2">
+                                  <span>{country.name}</span>
+                                  <span className="text-gray-500 text-xs">
+                                    ({country.currency})
+                                  </span>
+                                </div>
+                              </SelectItem>
                             ))}
-                          </select>
-                        </div>
+                          </SelectContent>
+                        </Select>
                         <p className="text-xs text-gray-500">Select your country of residence for tax purposes</p>
                       </div>
                       
@@ -238,19 +260,24 @@ const TaxCalculator = () => {
                         <SubscriptionGuard requiredTier="professional" showAlert={false}>
                           <div className="space-y-2">
                             <Label htmlFor="state">Region/State/Province</Label>
-                            <select
-                              id="state"
-                              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            <Select
                               value={stateProvince}
-                              onChange={handleStateChange}
+                              onValueChange={(value) => {
+                                setStateProvince(value);
+                                setShowResults(false);
+                              }}
                             >
-                              <option value="">Select a region</option>
-                              {getRegionalOptions().map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a region" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getRegionalOptions().map(option => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <p className="text-xs text-gray-500">Regional tax calculations available for professional plans</p>
                           </div>
                         </SubscriptionGuard>
@@ -273,15 +300,18 @@ const TaxCalculator = () => {
                       
                       <div className="space-y-2">
                         <Label htmlFor="filing-status">Filing Status</Label>
-                        <select 
-                          id="filing-status" 
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        <Select
                           value={filingStatus}
-                          onChange={(e) => setFilingStatus(e.target.value as 'single' | 'married')}
+                          onValueChange={(value) => setFilingStatus(value as 'single' | 'married')}
                         >
-                          <option value="single">Single/Individual</option>
-                          <option value="married">Married/Joint</option>
-                        </select>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select filing status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="single">Single/Individual</SelectItem>
+                            <SelectItem value="married">Married/Joint</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <p className="text-xs text-gray-500">Tax rates vary based on filing status</p>
                       </div>
                       
@@ -301,6 +331,11 @@ const TaxCalculator = () => {
                       </div>
                       
                       <Button onClick={calculateTax} className="w-full">Calculate Tax</Button>
+                    </div>
+
+                    {/* Information about tax system */}
+                    <div className="mt-6">
+                      <TaxSystemInfo currencyCode={TAX_SYSTEMS[getCurrentCountryCode()]?.currency} />
                     </div>
 
                     {!isPremium && (
@@ -410,23 +445,33 @@ const TaxCalculator = () => {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="detailed-country">Country</Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                            <Globe size={16} />
-                          </span>
-                          <select
-                            id="detailed-country"
-                            className="w-full pl-8 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            value={selectedCountry}
-                            onChange={handleCountryChange}
-                          >
+                        <Select
+                          value={selectedCountry}
+                          onValueChange={(value) => {
+                            setSelectedCountry(value);
+                            setShowResults(false);
+                            setStateProvince("");
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <div className="flex items-center gap-2">
+                              <Globe className="h-4 w-4 text-gray-500" />
+                              <SelectValue placeholder="Select a country" />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
                             {getAvailableCountries().map(country => (
-                              <option key={country.code} value={country.code}>
-                                {country.name} ({country.currency})
-                              </option>
+                              <SelectItem key={country.code} value={country.code}>
+                                <div className="flex items-center gap-2">
+                                  <span>{country.name}</span>
+                                  <span className="text-gray-500 text-xs">
+                                    ({country.currency})
+                                  </span>
+                                </div>
+                              </SelectItem>
                             ))}
-                          </select>
-                        </div>
+                          </SelectContent>
+                        </Select>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4">
@@ -446,15 +491,18 @@ const TaxCalculator = () => {
                         
                         <div className="space-y-2">
                           <Label htmlFor="detailed-filing-status">Filing Status</Label>
-                          <select 
-                            id="detailed-filing-status" 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                          <Select
                             value={filingStatus}
-                            onChange={(e) => setFilingStatus(e.target.value as 'single' | 'married')}
+                            onValueChange={(value) => setFilingStatus(value as 'single' | 'married')}
                           >
-                            <option value="single">Single</option>
-                            <option value="married">Married</option>
-                          </select>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select filing status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="single">Single</SelectItem>
+                              <SelectItem value="married">Married</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                       
@@ -462,19 +510,24 @@ const TaxCalculator = () => {
                         <SubscriptionGuard requiredTier="professional" showAlert={false}>
                           <div className="space-y-2">
                             <Label htmlFor="detailed-state">Region/State</Label>
-                            <select
-                              id="detailed-state"
-                              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            <Select
                               value={stateProvince}
-                              onChange={handleStateChange}
+                              onValueChange={(value) => {
+                                setStateProvince(value);
+                                setShowResults(false);
+                              }}
                             >
-                              <option value="">Select a region</option>
-                              {getRegionalOptions().map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a region" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getRegionalOptions().map(option => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </SubscriptionGuard>
                       )}

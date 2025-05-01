@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Badge } from '@/components/ui/badge';
-import { InfoIcon } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TAX_SYSTEMS } from '@/utils/taxSystemData';
 
@@ -58,7 +58,7 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <InfoIcon className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
+                <Info className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">This information uses simulated data. In a production environment, this would reflect current tax laws.</p>
