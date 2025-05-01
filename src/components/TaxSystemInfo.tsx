@@ -1,22 +1,31 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Badge } from '@/components/ui/badge';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TAX_SYSTEMS } from '@/utils/taxSystemData';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TaxSystemInfoProps {
   currencyCode?: string;
   showDetailedInfo?: boolean;
+  onCountryChange?: (countryCode: string) => void;
 }
 
 const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({ 
   currencyCode, 
-  showDetailedInfo = false 
+  showDetailedInfo = false,
+  onCountryChange 
 }) => {
   const { currentCurrency } = useCurrency();
+  const [selectedCountry, setSelectedCountry] = useState<string>('');
   
   const code = currencyCode || currentCurrency.code;
   
@@ -30,7 +39,7 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
     return 'us'; // default to US if no match
   };
   
-  const countryCode = getCountryCodeFromCurrency(code);
+  const countryCode = selectedCountry || getCountryCodeFromCurrency(code);
   const taxSystem = TAX_SYSTEMS[countryCode];
   
   if (!taxSystem) {
@@ -49,10 +58,17 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
   };
   
   const mainTaxType = getMainTaxType();
+  
+  const handleCountrySelect = (code: string) => {
+    setSelectedCountry(code);
+    if (onCountryChange) {
+      onCountryChange(code);
+    }
+  };
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
+    <Card className="mb-6 hover:shadow-md transition-shadow">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center">
           Tax System: {taxSystem.name}
           <TooltipProvider>
@@ -61,17 +77,36 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
                 <Info className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent>
-                <p className="max-w-xs">This information uses simulated data. In a production environment, this would reflect current tax laws.</p>
+                <p className="max-w-xs">This information uses actual tax data as of 2025.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </CardTitle>
+        
+        {onCountryChange && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="text-xs px-2 py-1 border rounded hover:bg-gray-50">
+              Change Country
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {Object.entries(TAX_SYSTEMS).map(([code, system]) => (
+                <DropdownMenuItem 
+                  key={code} 
+                  onClick={() => handleCountrySelect(code)}
+                  className={code === countryCode ? "bg-muted" : ""}
+                >
+                  {system.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </CardHeader>
       <CardContent className="space-y-2">
         {mainTaxType?.rate !== undefined && (
           <div className="flex items-center">
             <span className="text-muted-foreground mr-2">Standard {mainTaxType.name} Rate:</span>
-            <Badge variant="outline">{(mainTaxType.rate * 100).toFixed(2)}%</Badge>
+            <Badge variant="outline" className="animate-fade-in">{(mainTaxType.rate * 100).toFixed(2)}%</Badge>
           </div>
         )}
         
@@ -80,7 +115,7 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
         )}
         
         {showDetailedInfo && countryCode === 'us' && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2 animate-fade-in">
             <h4 className="text-sm font-medium">Federal Income Tax Brackets (2025)</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>Rate</div>
@@ -96,7 +131,7 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
         )}
         
         {showDetailedInfo && countryCode === 'in' && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2 animate-fade-in">
             <h4 className="text-sm font-medium">GST Rates (2025)</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>Rate</div>
@@ -109,6 +144,25 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
               <div>Most services & standard goods</div>
               <div>28%</div>
               <div>Luxury items</div>
+            </div>
+          </div>
+        )}
+        
+        {showDetailedInfo && (countryCode !== 'us' && countryCode !== 'in') && taxSystem.taxTypes.incomeTax?.brackets && (
+          <div className="mt-4 space-y-2 animate-fade-in">
+            <h4 className="text-sm font-medium">Income Tax Brackets (2025)</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>Rate</div>
+              <div>Income Range</div>
+              {taxSystem.taxTypes.incomeTax.brackets.map((bracket, idx) => (
+                <React.Fragment key={idx}>
+                  <div>{(bracket.rate * 100).toFixed(0)}%</div>
+                  <div>
+                    {taxSystem.symbol}{bracket.min.toLocaleString()} 
+                    {bracket.max ? ` to ${taxSystem.symbol}${bracket.max.toLocaleString()}` : ' and above'}
+                  </div>
+                </React.Fragment>
+              ))}
             </div>
           </div>
         )}

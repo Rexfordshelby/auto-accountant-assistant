@@ -194,7 +194,7 @@ export const TAX_SYSTEMS: { [key: string]: CountryTaxSystem } = {
         description: "Varies by province",
         rate: null
       },
-      gstHst: {
+      gst: {
         name: "GST/HST (Goods and Services Tax / Harmonized Sales Tax)",
         description: "Applied to most purchases",
         rate: 0.05 // Federal GST
@@ -344,6 +344,274 @@ export const TAX_SYSTEMS: { [key: string]: CountryTaxSystem } = {
         name: "Stamp Duty",
         description: "On certain financial transactions",
         rate: 0.001 // Common rate
+      }
+    }
+  },
+  "au": {
+    name: "Australia",
+    code: "au",
+    currency: "AUD",
+    symbol: "A$",
+    standardDeduction: {
+      single: 18200,
+      married: 18200
+    },
+    taxTypes: {
+      incomeTax: {
+        name: "Income Tax",
+        description: "Progressive tax on personal earnings",
+        brackets: [
+          { min: 0, max: 18200, rate: 0.0 },
+          { min: 18201, max: 45000, rate: 0.19 },
+          { min: 45001, max: 120000, rate: 0.325 },
+          { min: 120001, max: 180000, rate: 0.37 },
+          { min: 180001, max: null, rate: 0.45 }
+        ]
+      },
+      gst: {
+        name: "GST (Goods and Services Tax)",
+        description: "10% tax on most goods and services",
+        rate: 0.10
+      },
+      capitalGains: {
+        name: "Capital Gains Tax",
+        description: "Tax on profit from asset sales",
+        rate: 0.50 // 50% discount for assets held >12 months
+      },
+      propertyTax: {
+        name: "Property Tax",
+        description: "State-based tax on property values",
+        rate: 0.0025 // Approximate average
+      },
+      medicareLevy: {
+        name: "Medicare Levy",
+        description: "Helps fund Australia's public health system",
+        rate: 0.02 // 2% of taxable income
+      }
+    }
+  },
+  "de": {
+    name: "Germany",
+    code: "de",
+    currency: "EUR",
+    symbol: "€",
+    standardDeduction: {
+      single: 9408,
+      married: 18816
+    },
+    taxTypes: {
+      incomeTax: {
+        name: "Income Tax (Einkommensteuer)",
+        description: "Progressive tax on personal income",
+        brackets: [
+          { min: 0, max: 9408, rate: 0.0 },
+          { min: 9409, max: 57051, rate: 0.14 }, // Starts at 14% and progressively increases
+          { min: 57052, max: 270500, rate: 0.42 },
+          { min: 270501, max: null, rate: 0.45 }
+        ]
+      },
+      vat: {
+        name: "VAT (Mehrwertsteuer)",
+        description: "Value-added tax on goods and services",
+        rate: 0.19 // Standard rate
+      },
+      capitalGains: {
+        name: "Capital Gains Tax (Kapitalertragsteuer)",
+        description: "On investment income and gains",
+        rate: 0.25 // Plus solidarity surcharge
+      },
+      propertyTax: {
+        name: "Property Tax (Grundsteuer)",
+        description: "Annual tax on real estate ownership",
+        rate: 0.0035 // Approximate average
+      },
+      solidarityTax: {
+        name: "Solidarity Surcharge (Solidaritätszuschlag)",
+        description: "Additional tax to support eastern German states",
+        rate: 0.055 // 5.5% of income tax amount
+      }
+    }
+  },
+  "fr": {
+    name: "France",
+    code: "fr",
+    currency: "EUR",
+    symbol: "€",
+    standardDeduction: {
+      single: 10777,
+      married: 21554
+    },
+    taxTypes: {
+      incomeTax: {
+        name: "Income Tax (Impôt sur le revenu)",
+        description: "Progressive tax on personal income",
+        brackets: [
+          { min: 0, max: 10777, rate: 0.0 },
+          { min: 10778, max: 27478, rate: 0.11 },
+          { min: 27479, max: 78570, rate: 0.30 },
+          { min: 78571, max: 168994, rate: 0.41 },
+          { min: 168995, max: null, rate: 0.45 }
+        ]
+      },
+      vat: {
+        name: "VAT (TVA)",
+        description: "Value-added tax on goods and services",
+        rate: 0.20 // Standard rate
+      },
+      wealthTax: {
+        name: "Real Estate Wealth Tax (IFI)",
+        description: "Annual tax on real estate assets over €1.3M",
+        brackets: [
+          { min: 0, max: 1300000, rate: 0.0 },
+          { min: 1300001, max: 2570000, rate: 0.005 },
+          { min: 2570001, max: 5000000, rate: 0.01 },
+          { min: 5000001, max: 10000000, rate: 0.015 },
+          { min: 10000001, max: null, rate: 0.0175 }
+        ]
+      },
+      socialTax: {
+        name: "Social Taxes (Prélèvements sociaux)",
+        description: "For healthcare, pensions, and other social programs",
+        rate: 0.172 // Combined rate on employment income
+      }
+    }
+  },
+  "jp": {
+    name: "Japan",
+    code: "jp",
+    currency: "JPY",
+    symbol: "¥",
+    standardDeduction: {
+      single: 480000,
+      married: 480000
+    },
+    taxTypes: {
+      incomeTax: {
+        name: "Income Tax (所得税)",
+        description: "National progressive income tax",
+        brackets: [
+          { min: 0, max: 1950000, rate: 0.05 },
+          { min: 1950001, max: 3300000, rate: 0.10 },
+          { min: 3300001, max: 6950000, rate: 0.20 },
+          { min: 6950001, max: 9000000, rate: 0.23 },
+          { min: 9000001, max: 18000000, rate: 0.33 },
+          { min: 18000001, max: 40000000, rate: 0.40 },
+          { min: 40000001, max: null, rate: 0.45 }
+        ]
+      },
+      consumptionTax: {
+        name: "Consumption Tax (消費税)",
+        description: "Similar to VAT/GST on goods and services",
+        rate: 0.10 // Standard rate
+      },
+      residentTax: {
+        name: "Resident Tax (住民税)",
+        description: "Local tax based on income",
+        rate: 0.10 // Approximate combined rate
+      },
+      propertyTax: {
+        name: "Fixed Asset Tax (固定資産税)",
+        description: "Annual tax on property ownership",
+        rate: 0.014 // Standard rate
+      },
+      inheritanceTax: {
+        name: "Inheritance Tax (相続税)",
+        description: "Tax on inherited assets",
+        rate: 0.55 // Maximum rate
+      }
+    }
+  },
+  "es": {
+    name: "Spain",
+    code: "es",
+    currency: "EUR",
+    symbol: "€",
+    standardDeduction: {
+      single: 5550,
+      married: 5550
+    },
+    taxTypes: {
+      incomeTax: {
+        name: "Income Tax (IRPF)",
+        description: "Progressive tax on personal income",
+        brackets: [
+          { min: 0, max: 12450, rate: 0.19 },
+          { min: 12451, max: 20200, rate: 0.24 },
+          { min: 20201, max: 35200, rate: 0.30 },
+          { min: 35201, max: 60000, rate: 0.37 },
+          { min: 60001, max: 300000, rate: 0.45 },
+          { min: 300001, max: null, rate: 0.47 }
+        ]
+      },
+      vat: {
+        name: "VAT (IVA)",
+        description: "Value-added tax on goods and services",
+        rate: 0.21 // Standard rate
+      },
+      wealthTax: {
+        name: "Wealth Tax (Impuesto sobre el Patrimonio)",
+        description: "Annual tax on net assets above exemption",
+        rate: 0.02 // Average rate, varies by region
+      },
+      propertyTax: {
+        name: "Property Tax (IBI)",
+        description: "Annual tax on property ownership",
+        rate: 0.006 // Average rate, varies by municipality
+      }
+    },
+    regionalTax: {
+      "madrid": {
+        name: "Madrid Regional Income Tax",
+        rate: 0.21,
+        description: "Regional component of income tax"
+      },
+      "catalonia": {
+        name: "Catalonia Regional Income Tax",
+        rate: 0.24,
+        description: "Regional component of income tax"
+      },
+      "andalusia": {
+        name: "Andalusia Regional Income Tax",
+        rate: 0.235,
+        description: "Regional component of income tax"
+      }
+    }
+  },
+  "br": {
+    name: "Brazil",
+    code: "br",
+    currency: "BRL",
+    symbol: "R$",
+    standardDeduction: {
+      single: 22847.76,
+      married: 22847.76
+    },
+    taxTypes: {
+      incomeTax: {
+        name: "Income Tax (Imposto de Renda)",
+        description: "Progressive tax on personal income",
+        brackets: [
+          { min: 0, max: 22847.76, rate: 0.0 },
+          { min: 22847.77, max: 33919.80, rate: 0.075 },
+          { min: 33919.81, max: 45012.60, rate: 0.15 },
+          { min: 45012.61, max: 55976.16, rate: 0.225 },
+          { min: 55976.17, max: null, rate: 0.275 }
+        ]
+      },
+      consumptionTax: {
+        name: "Consumption Tax (ICMS, IPI, ISS)",
+        description: "Combined taxes on products and services",
+        rate: 0.17 // ICMS standard rate
+      },
+      propertyTax: {
+        name: "Urban Property Tax (IPTU)",
+        description: "Annual tax on urban property ownership",
+        rate: 0.01 // Average rate, varies by municipality
+      },
+      financialTax: {
+        name: "Financial Operations Tax (IOF)",
+        description: "Tax on loans, foreign exchange, securities",
+        rate: 0.038 // Varies by transaction type
       }
     }
   }
