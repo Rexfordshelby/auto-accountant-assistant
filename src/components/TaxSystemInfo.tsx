@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Accordion, 
   AccordionContent, 
@@ -28,20 +28,22 @@ interface TaxSystemInfoProps {
   currencyCode?: string;
   countryCode?: string;
   expanded?: boolean;
+  // Adding showDetailedInfo property
+  showDetailedInfo?: boolean;
 }
 
 const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({ 
   currencyCode, 
   countryCode = "us",
-  expanded = false
+  expanded = false,
+  showDetailedInfo = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(expanded);
   
-  const getCountryData = () => {
+  // Use useMemo to avoid unnecessary recalculations
+  const countryData = useMemo(() => {
     return TAX_SYSTEMS[countryCode.toLowerCase()] || TAX_SYSTEMS.us;
-  };
-  
-  const countryData = getCountryData();
+  }, [countryCode]);
   
   const formatRate = (rate: number | null | undefined): string => {
     if (rate === null || rate === undefined) return 'Varies';
@@ -71,10 +73,10 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
           <div>Rate</div>
         </div>
         {brackets.map((bracket, index) => (
-          <div key={index} className="grid grid-cols-3 gap-2 text-xs">
+          <div key={index} className="grid grid-cols-3 gap-2 text-xs hover:bg-blue-50 rounded-md px-1 py-0.5 transition-colors">
             <div>{formatCurrency(bracket.min)}</div>
             <div>{bracket.max !== null ? formatCurrency(bracket.max) : '∞'}</div>
-            <div>{formatRate(bracket.rate)}</div>
+            <div className="font-medium">{formatRate(bracket.rate)}</div>
           </div>
         ))}
       </div>
@@ -82,11 +84,13 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
   };
   
   return (
-    <div className="bg-white rounded-md border p-4">
+    <div className="bg-white rounded-md border shadow-sm p-4 transition-all duration-300 hover:shadow-md">
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-medium flex items-center gap-1">
           <Info className="h-4 w-4 text-blue-500" />
-          {countryData.name} Tax Information
+          <span className="bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
+            {countryData.name} Tax Information
+          </span>
         </h3>
         
         <TooltipProvider>
@@ -107,9 +111,13 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
         </TooltipProvider>
       </div>
       
-      <div className="flex items-center text-sm text-gray-500 mb-4">
+      <div className="flex items-center text-sm text-gray-500 mb-4 bg-gray-50 px-3 py-2 rounded-md">
         <span className="font-medium mr-2">Currency:</span> 
-        {countryData.currency} ({countryData.symbol})
+        <span className="flex items-center">
+          {countryData.currency} 
+          <span className="mx-1 text-gray-400">•</span> 
+          <span className="text-blue-600 font-mono">{countryData.symbol}</span>
+        </span>
       </div>
       
       <Accordion 
@@ -120,18 +128,18 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
         className="w-full"
       >
         <AccordionItem value="tax-types" className="border-none">
-          <AccordionTrigger className="py-2 text-sm font-medium">
+          <AccordionTrigger className="py-2 text-sm font-medium hover:bg-blue-50 px-2 rounded-md transition-colors">
             Tax Types & Rates
           </AccordionTrigger>
-          <AccordionContent>
+          <AccordionContent className="animate-accordion-down">
             <div className="space-y-4">
               {Object.entries(countryData.taxTypes).map(([key, taxType]) => (
-                <div key={key} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                <div key={key} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0 hover:bg-gray-50 p-2 rounded-md transition-colors">
                   <Dialog>
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-sm">{taxType.name}</h4>
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 text-xs">Details</Button>
+                        <Button variant="outline" size="sm" className="h-6 text-xs">Details</Button>
                       </DialogTrigger>
                     </div>
                     
@@ -141,11 +149,11 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
                     
                     {taxType.rate !== undefined && taxType.rate !== null && (
                       <div className="text-xs font-medium mt-1">
-                        Rate: {formatRate(taxType.rate)}
+                        Rate: <span className="text-blue-600">{formatRate(taxType.rate)}</span>
                       </div>
                     )}
                     
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-md">
                       <DialogHeader>
                         <DialogTitle>{taxType.name}</DialogTitle>
                         <DialogDescription>
@@ -153,9 +161,9 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
                         </DialogDescription>
                       </DialogHeader>
                       
-                      <div className="space-y-4">
+                      <div className="space-y-4 mt-4">
                         {taxType.brackets && (
-                          <div>
+                          <div className="bg-gray-50 p-3 rounded-md">
                             <h4 className="font-medium text-sm mb-2">Tax Brackets</h4>
                             {renderBrackets(taxType.brackets)}
                           </div>
@@ -164,7 +172,7 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
                         {taxType.rate !== undefined && taxType.rate !== null && (
                           <div className="flex justify-between border-t pt-2">
                             <span className="text-sm">Standard Rate:</span>
-                            <span className="font-medium">{formatRate(taxType.rate)}</span>
+                            <span className="font-medium text-blue-600">{formatRate(taxType.rate)}</span>
                           </div>
                         )}
                       </div>
@@ -178,20 +186,20 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
         
         {countryData.regionalTax && Object.keys(countryData.regionalTax).length > 0 && (
           <AccordionItem value="regional-tax" className="border-none">
-            <AccordionTrigger className="py-2 text-sm font-medium">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:bg-blue-50 px-2 rounded-md transition-colors">
               Regional Tax Information
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="animate-accordion-down">
               <div className="space-y-3">
                 {Object.entries(countryData.regionalTax).map(([region, info]) => (
-                  <div key={region} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                  <div key={region} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0 hover:bg-gray-50 p-2 rounded-md transition-colors">
                     <h4 className="font-medium text-sm capitalize">{region}</h4>
                     <div className="text-xs text-gray-600 mt-1">
                       {info.description}
                     </div>
                     {info.rate !== null && (
-                      <div className="text-xs mt-1">
-                        Rate: {formatRate(info.rate)}
+                      <div className="text-xs mt-1 font-medium">
+                        Rate: <span className="text-blue-600">{formatRate(info.rate)}</span>
                       </div>
                     )}
                   </div>
@@ -202,19 +210,19 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
         )}
         
         <AccordionItem value="standard-deduction" className="border-none">
-          <AccordionTrigger className="py-2 text-sm font-medium">
+          <AccordionTrigger className="py-2 text-sm font-medium hover:bg-blue-50 px-2 rounded-md transition-colors">
             Standard Deductions
           </AccordionTrigger>
-          <AccordionContent>
+          <AccordionContent className="animate-accordion-down">
             {countryData.standardDeduction ? (
-              <div className="space-y-2">
+              <div className="space-y-2 bg-gray-50 p-3 rounded-md">
                 <div className="flex justify-between text-sm">
                   <span>Single/Individual:</span>
-                  <span className="font-medium">{formatCurrency(countryData.standardDeduction.single)}</span>
+                  <span className="font-medium text-blue-600">{formatCurrency(countryData.standardDeduction.single)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Married/Joint:</span>
-                  <span className="font-medium">{formatCurrency(countryData.standardDeduction.married)}</span>
+                  <span className="font-medium text-blue-600">{formatCurrency(countryData.standardDeduction.married)}</span>
                 </div>
               </div>
             ) : (
@@ -222,6 +230,23 @@ const TaxSystemInfo: React.FC<TaxSystemInfoProps> = ({
             )}
           </AccordionContent>
         </AccordionItem>
+        
+        {showDetailedInfo && (
+          <AccordionItem value="additional-info" className="border-none">
+            <AccordionTrigger className="py-2 text-sm font-medium hover:bg-blue-50 px-2 rounded-md transition-colors">
+              Additional Tax Information
+            </AccordionTrigger>
+            <AccordionContent className="animate-accordion-down">
+              <div className="p-3 bg-blue-50 rounded-md">
+                <h4 className="font-medium mb-2">Tax Calendar for {countryData.name}</h4>
+                <p className="text-sm text-gray-600">
+                  Tax filing deadlines and payment schedules vary by country. 
+                  Please consult a local tax professional for specific advice.
+                </p>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
       </Accordion>
     </div>
   );
