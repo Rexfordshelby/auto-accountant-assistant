@@ -27,7 +27,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiresAuth = true }) 
         toast({
           title: "Session expiring soon",
           description: "Your session will expire soon. Please save your work.",
-          variant: "warning",
+          variant: "default", // Changed from "warning" to "default" to fix the build error
         });
       }
     }
