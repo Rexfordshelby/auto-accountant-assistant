@@ -48,13 +48,13 @@ const CollaborativeWorkspace = () => {
     { 
       id: '1', 
       user: { id: '1', name: 'Jane Cooper', status: 'online', role: 'Accountant' }, 
-      text: 'I've updated the Q2 expense report with the new categorization system.',
+      text: "I've updated the Q2 expense report with the new categorization system.",
       timestamp: new Date(Date.now() - 25 * 60000)
     },
     { 
       id: '2', 
       user: { id: '3', name: 'Sarah Lin', status: 'away', role: 'Tax Specialist' }, 
-      text: 'The new depreciation schedule looks good. I've added notes on the tax implications.',
+      text: "The new depreciation schedule looks good. I've added notes on the tax implications.",
       timestamp: new Date(Date.now() - 10 * 60000)
     }
   ]);
